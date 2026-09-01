@@ -13,12 +13,14 @@ def build_graph():
 
     graph = StateGraph(OpsState)
 
+    # Register agents
     graph.add_node("research", research_agent)
     graph.add_node("data_analysis", data_analysis_agent)
     graph.add_node("business_analysis", business_analysis_agent)
     graph.add_node("review", review_agent)
     graph.add_node("final_report", final_report_agent)
 
+    # Workflow
     graph.add_edge(START, "research")
     graph.add_edge("research", "data_analysis")
     graph.add_edge("data_analysis", "business_analysis")

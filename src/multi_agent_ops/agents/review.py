@@ -1,5 +1,5 @@
 from langchain_huggingface import ChatHuggingFace
-
+from multi_agent_ops.llm import create_llm
 from multi_agent_ops.agents.research import create_llm
 from multi_agent_ops.state import OpsState
 
@@ -10,7 +10,7 @@ def create_review_llm() -> ChatHuggingFace:
     return create_llm()
 
 
-llm = create_review_llm()
+llm = create_llm()
 
 
 def review_agent(state: OpsState) -> dict:
