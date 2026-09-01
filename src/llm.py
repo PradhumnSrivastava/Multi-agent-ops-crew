@@ -18,9 +18,19 @@ def create_llm(
     if not hf_token:
         raise ValueError("HF_TOKEN is not configured.")
 
+    model = os.getenv(
+        "HF_MODEL",
+        "Qwen/Qwen2.5-7B-Instruct",
+    )
+
+    provider = os.getenv(
+        "HF_PROVIDER",
+        "featherless-ai",
+    )
+
     endpoint = HuggingFaceEndpoint(
-        repo_id="Qwen/Qwen2.5-7B-Instruct",
-        provider="featherless-ai",
+        repo_id=model,
+        provider=provider,
         task="text-generation",
         max_new_tokens=max_new_tokens,
         temperature=temperature,
