@@ -1,6 +1,18 @@
-def main():
-    print("Hello from multi-agent-ops-crew!")
+from multi_agent_ops.graph import graph
 
 
-if __name__ == "__main__":
-    main()
+initial_state = {
+    "problem": "Why did customer support resolution time increase?",
+    "plan": {},
+    "research_findings": {},
+    "data_findings": {},
+    "business_analysis": {},
+    "review": {},
+    "status": "RECEIVED",
+    "final_report": {},
+}
+
+
+result = graph.invoke(initial_state)
+
+print(result)

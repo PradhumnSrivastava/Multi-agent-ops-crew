@@ -6,7 +6,20 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "langchain>=1.3.18",
+    "langchain-huggingface>=1.2.2",
     "langgraph>=1.2.11",
     "pydantic>=2.13.5",
     "python-dotenv>=1.2.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/multi_agent_ops"]
+
+[dependency-groups]
+dev = [
+    "hatchling>=1.32.0",
 ]
