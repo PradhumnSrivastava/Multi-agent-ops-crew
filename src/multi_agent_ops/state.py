@@ -21,5 +21,6 @@ class OpsState(TypedDict):
     data_findings: dict
     business_analysis: dict
     review: dict
+    revision: dict
     status: str
     final_report: dict
