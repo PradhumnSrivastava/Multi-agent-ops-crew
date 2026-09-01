@@ -1,34 +1,7 @@
 from langchain_huggingface import ChatHuggingFace
-from pydantic import BaseModel, Field
 
-from multi_agent_ops.state import OpsState
 from multi_agent_ops.agents.research import create_llm
-
-
-class ReviewResult(BaseModel):
-    """Structured output produced by the review agent."""
-
-    overall_assessment: str = Field(
-        description="Overall assessment of the analysis quality."
-    )
-    strengths: list[str] = Field(
-        description="Strong aspects of the analysis."
-    )
-    issues_identified: list[str] = Field(
-        description="Issues found during review."
-    )
-    unsupported_claims: list[str] = Field(
-        description="Claims that are not sufficiently supported."
-    )
-    missing_information: list[str] = Field(
-        description="Information that is still required."
-    )
-    recommended_corrections: list[str] = Field(
-        description="Corrections or improvements recommended."
-    )
-    review_status: str = Field(
-        description="Final review status: PASS, PASS_WITH_WARNINGS, or FAIL."
-    )
+from multi_agent_ops.state import OpsState
 
 
 def create_review_llm() -> ChatHuggingFace:
@@ -38,8 +11,6 @@ def create_review_llm() -> ChatHuggingFace:
 
 
 llm = create_review_llm()
-
-structured_llm = llm.with_structured_output(ReviewResult)
 
 
 def review_agent(state: OpsState) -> dict:
@@ -54,8 +25,9 @@ def review_agent(state: OpsState) -> dict:
 You are a senior quality reviewer in a multi-agent
 business operations system.
 
-Your job is to critically review the work produced by
-the research, data analysis, and business analysis agents.
+Your responsibility is to independently verify the work
+produced by the research, data analysis, and business
+analysis agents.
 
 Business Problem:
 {problem}
@@ -69,37 +41,121 @@ Data Findings:
 Business Analysis:
 {business_analysis}
 
-Review the analysis for:
 
-1. Factual consistency
-2. Numerical consistency
-3. Whether conclusions are supported by the provided data
-4. Whether research evidence is actually relevant
-5. Unsupported assumptions or causal claims
-6. Missing information
-7. Overall quality
+PERFORM THESE CHECKS:
 
-Important rules:
+1. FACTUAL CONSISTENCY
 
-- Do not invent facts.
-- Do not invent statistics.
-- Do not introduce external evidence.
-- Distinguish evidence, inference, and hypothesis.
-- Flag unsupported causal claims.
-- Verify numerical claims against the provided data.
-- Be critical rather than automatically approving the analysis.
-- Use only the information provided above.
+Check whether statements in the business analysis are
+consistent with the research findings and available data.
 
-Review status must be exactly one of:
+
+2. NUMERICAL VALIDATION
+
+Independently calculate important percentage changes
+from the raw data.
+
+For example:
+
+Percentage change =
+((new value - old value) / old value) * 100
+
+Compare your calculations with every percentage reported
+by the previous agents.
+
+If a reported number is incorrect, explicitly identify:
+
+- reported value
+- correct value
+- source values used for calculation
+
+
+3. DATA-SUPPORTED CONCLUSIONS
+
+Check whether the conclusions are actually supported
+by the available data.
+
+Do not treat correlation as proof of causation.
+
+
+4. RESEARCH EVIDENCE
+
+Check whether research findings actually support the
+claims made in the business analysis.
+
+Do not assume that a research article proves that the
+same factor caused the problem in this specific business.
+
+
+5. UNSUPPORTED CLAIMS
+
+Identify statements that are hypotheses rather than
+established facts.
+
+
+6. MISSING INFORMATION
+
+Identify information that would be required to establish
+stronger causal conclusions.
+
+
+7. OVERALL QUALITY
+
+Determine whether the analysis is:
 
 PASS
 PASS_WITH_WARNINGS
 FAIL
+
+
+IMPORTANT RULES:
+
+- Do not invent facts.
+- Do not invent statistics.
+- Do not introduce external evidence.
+- Use only the information provided in the state.
+- Independently verify numerical calculations.
+- Be critical.
+- Clearly distinguish evidence, inference, and hypothesis.
+- If you find a numerical error, explicitly flag it.
+
+
+Return the review using exactly these sections:
+
+OVERALL ASSESSMENT:
+
+STRENGTHS:
+- ...
+
+ISSUES IDENTIFIED:
+- ...
+
+UNSUPPORTED CLAIMS:
+- ...
+
+MISSING INFORMATION:
+- ...
+
+RECOMMENDED CORRECTIONS:
+- ...
+
+FINAL REVIEW STATUS:
+PASS
+or
+PASS_WITH_WARNINGS
+or
+FAIL
+
+Do not use JSON.
+Do not use code blocks.
+Do not add additional sections.
 """
 
-    result = structured_llm.invoke(prompt)
+    response = llm.invoke(prompt)
 
     return {
-        "review": result.model_dump(),
+        "review": {
+            "analysis": response.content,
+        },
         "status": "REVIEW_COMPLETED",
     }
