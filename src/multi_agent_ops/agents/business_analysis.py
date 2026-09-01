@@ -1,34 +1,8 @@
-import os
-
-from dotenv import load_dotenv
-from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
-
+from multi_agent_ops.llm import create_llm
 from multi_agent_ops.state import OpsState
 
-load_dotenv()
 
-
-def create_llm() -> ChatHuggingFace:
-    """Create and configure the Hugging Face chat model."""
-
-    hf_token = os.getenv("HF_TOKEN")
-
-    if not hf_token:
-        raise ValueError("HF_TOKEN is not configured.")
-
-    endpoint = HuggingFaceEndpoint(
-        repo_id="Qwen/Qwen2.5-7B-Instruct",
-        provider="featherless-ai",
-        task="text-generation",
-        max_new_tokens=400,
-        temperature=0.1,
-        huggingfacehub_api_token=hf_token,
-    )
-
-    return ChatHuggingFace(llm=endpoint)
-
-
-llm = create_llm()
+llm = create_llm(max_new_tokens=400)
 
 
 def business_analysis_agent(state: OpsState) -> dict:
@@ -46,12 +20,15 @@ Analyze the business problem using the research findings and
 data analysis provided below.
 
 Business Problem:
+
 {problem}
 
 Research Findings:
+
 {research_findings}
 
 Data Findings:
+
 {data_findings}
 
 Provide:
@@ -69,6 +46,10 @@ Important rules:
 - Clearly distinguish observed data from hypotheses.
 - Do not perform calculations that are not supported by the provided data.
 - Do not claim causation when the data only shows correlation.
+- If the available evidence is insufficient to establish a cause,
+  explicitly state that.
+- Do not introduce external evidence.
+- Keep the analysis concise and business-focused.
 """
 
     response = llm.invoke(prompt)
