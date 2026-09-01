@@ -42,12 +42,20 @@ def calculate_metrics(df: pd.DataFrame) -> dict[str, Any]:
     ) * 100
 
     return {
-        "ticket_change_pct": round(ticket_change_pct, 2),
-        "resolution_time_change_pct": round(resolution_time_change_pct, 2),
-        "staff_change_pct": round(staff_change_pct, 2),
-        "tickets_per_staff_first": round(tickets_per_staff_first, 2),
-        "tickets_per_staff_last": round(tickets_per_staff_last, 2),
-        "workload_change_pct": round(workload_change_pct, 2),
+        "ticket_change_pct": float(round(ticket_change_pct, 2)),
+        "resolution_time_change_pct": float(
+            round(resolution_time_change_pct, 2)
+        ),
+        "staff_change_pct": float(round(staff_change_pct, 2)),
+        "tickets_per_staff_first": float(
+            round(tickets_per_staff_first, 2)
+        ),
+        "tickets_per_staff_last": float(
+            round(tickets_per_staff_last, 2)
+        ),
+        "workload_change_pct": float(
+            round(workload_change_pct, 2)
+        ),
     }
 
 
