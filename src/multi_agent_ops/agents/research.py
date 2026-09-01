@@ -3,13 +3,16 @@ import os
 from dotenv import load_dotenv
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 
-from multi_agent_ops.state import OpsState
+from multi_agent_ops.state import OpsState, ResearchResult, ResearchSource
+from multi_agent_ops.tools.research_tools import web_search
 
 
 load_dotenv()
 
 
 def create_llm() -> ChatHuggingFace:
+    """Create and configure the Hugging Face chat model."""
+
     hf_token = os.getenv("HF_TOKEN")
 
     if not hf_token:
@@ -31,24 +34,45 @@ llm = create_llm()
 
 
 def research_agent(state: OpsState) -> dict:
+    """Research the business problem using web search and an LLM."""
+
     problem = state["problem"]
 
+    search_results = web_search(
+        problem,
+        max_results=5,
+    )
+
     prompt = f"""
-You are a research analyst.
+You are a research analyst working as part of a multi-agent
+business operations system.
 
-Analyze the following business problem and provide a concise
-research-oriented response.
+Analyze the following business problem using the provided web
+search results.
 
-Problem:
+Business Problem:
 {problem}
 
-Return:
-1. Key areas that should be investigated
-2. Relevant factors that may explain the problem
-3. Important information that would be needed
-4. Limitations of this initial analysis
+Web Search Results:
+{search_results}
 
-Do not invent factual sources or statistics.
+Your task is to produce a concise research analysis.
+
+Include:
+
+1. Key findings
+2. Relevant factors that may explain the problem
+3. Evidence from the provided search results
+4. Information that still needs investigation
+5. Limitations of this analysis
+
+Important rules:
+
+- Do not invent facts.
+- Do not invent statistics.
+- Do not invent sources.
+- Only use the provided search results as external evidence.
+- Clearly distinguish evidence from possible hypotheses.
 """
 
     response = llm.invoke(prompt)
@@ -56,6 +80,7 @@ Do not invent factual sources or statistics.
     return {
         "research_findings": {
             "analysis": response.content,
+            "sources": search_results,
         },
         "status": "RESEARCH_COMPLETED",
     }
