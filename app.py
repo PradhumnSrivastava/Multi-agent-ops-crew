@@ -1,4 +1,7 @@
+import re
+
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 from multi_agent_ops.graph import build_graph
@@ -6,14 +9,10 @@ from multi_agent_ops.state import OpsState
 from multi_agent_ops.tools.data_tools import validate_support_data
 
 
-# ============================================================
-# PAGE CONFIG
-# ============================================================
-
 st.set_page_config(
     page_title="Multi-Agent Ops Crew",
+    page_icon="◈",
     layout="wide",
-    initial_sidebar_state="collapsed",
 )
 
 
@@ -25,214 +24,338 @@ st.markdown(
     """
     <style>
 
-    /* ---------- Global ---------- */
+    /* ---------- GLOBAL ---------- */
 
     .stApp {
         background:
             radial-gradient(
                 circle at 10% 0%,
-                rgba(15, 65, 130, 0.20),
-                transparent 35%
+                rgba(37, 99, 235, 0.12),
+                transparent 32%
             ),
             radial-gradient(
                 circle at 90% 10%,
-                rgba(20, 45, 100, 0.15),
-                transparent 35%
+                rgba(30, 64, 175, 0.10),
+                transparent 30%
             ),
-            #030712;
+            #05070b;
         color: #f8fafc;
     }
 
-    .main .block-container {
-        max-width: 1450px;
-        padding-top: 2.5rem;
+    .block-container {
+        max-width: 1400px;
+        padding-top: 2rem;
         padding-bottom: 4rem;
     }
 
-    /* ---------- Header ---------- */
+    /* ---------- REMOVE DEFAULT STREAMLIT HEADER SPACE ---------- */
 
-    .app-header {
-        padding: 10px 0 28px 0;
-        border-bottom: 1px solid rgba(59, 130, 246, 0.20);
-        margin-bottom: 35px;
+    header[data-testid="stHeader"] {
+        background: transparent;
     }
 
-    .app-title {
+    /* ---------- TEXT ---------- */
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        color: #f8fafc !important;
+    }
+
+    p,
+    label,
+    .stMarkdown {
+        color: #cbd5e1;
+    }
+
+    /* ---------- HERO ---------- */
+
+    .hero {
+        position: relative;
+        padding: 2.2rem 2.4rem;
+        margin-bottom: 1.8rem;
+        border: 1px solid rgba(59, 130, 246, 0.25);
+        border-radius: 22px;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(15, 23, 42, 0.98),
+                rgba(3, 7, 18, 0.98)
+            );
+        box-shadow:
+            0 20px 60px rgba(0, 0, 0, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        overflow: hidden;
+    }
+
+    .hero::after {
+        content: "";
+        position: absolute;
+        width: 260px;
+        height: 260px;
+        right: -100px;
+        top: -120px;
+        border-radius: 50%;
+        background: rgba(37, 99, 235, 0.16);
+        filter: blur(30px);
+    }
+
+    .hero-brand {
         color: #ffffff;
-        font-size: 2.5rem;
-        font-weight: 900;
-        letter-spacing: 1px;
-        margin: 0;
-    }
-
-    .app-subtitle {
-        color: #7f93b8;
-        font-size: 0.98rem;
-        margin-top: 8px;
-    }
-
-    /* ---------- Section Headers ---------- */
-
-    .section-number {
-        color: #3b82f6;
-        font-size: 0.72rem;
+        font-size: 1.05rem;
         font-weight: 800;
-        letter-spacing: 2px;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.8rem;
+    }
+
+    .hero-title {
+        color: #ffffff;
+        font-size: 2.7rem;
+        line-height: 1.05;
+        font-weight: 850;
+        letter-spacing: -0.04em;
+        margin-bottom: 0.8rem;
+    }
+
+    .hero-description {
+        max-width: 850px;
+        color: #94a3b8;
+        font-size: 1.02rem;
+        line-height: 1.7;
+    }
+
+    /* ---------- SECTION LABEL ---------- */
+
+    .section-label {
+        color: #60a5fa;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        margin-bottom: 5px;
+        margin-bottom: 0.35rem;
     }
 
     .section-title {
         color: #f8fafc;
-        font-size: 1.35rem;
-        font-weight: 800;
-        margin-bottom: 5px;
+        font-size: 1.45rem;
+        font-weight: 750;
+        margin-bottom: 0.8rem;
     }
 
     .section-description {
-        color: #7183a3;
-        font-size: 0.90rem;
-        margin-bottom: 18px;
+        color: #94a3b8;
+        margin-bottom: 1rem;
     }
 
-    /* ---------- Cards ---------- */
-
-    .metric-card {
-        background:
-            linear-gradient(
-                145deg,
-                rgba(15, 32, 65, 0.95),
-                rgba(5, 12, 28, 0.95)
-            );
-        border: 1px solid rgba(59, 130, 246, 0.22);
-        border-radius: 14px;
-        padding: 18px 18px;
-        min-height: 110px;
-        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.22);
-    }
-
-    .metric-label {
-        color: #7183a3;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.7px;
-    }
-
-    .metric-value {
-        color: #ffffff;
-        font-size: 1.65rem;
-        font-weight: 850;
-        margin-top: 8px;
-    }
-
-    .status-card {
-        background:
-            linear-gradient(
-                145deg,
-                rgba(10, 29, 58, 0.95),
-                rgba(4, 12, 25, 0.95)
-            );
-        border: 1px solid rgba(59, 130, 246, 0.25);
-        border-radius: 14px;
-        padding: 20px;
-        margin-bottom: 10px;
-    }
-
-    /* ---------- Review ---------- */
-
-    .review-pass {
-        background: rgba(16, 185, 129, 0.08);
-        border: 1px solid rgba(16, 185, 129, 0.30);
-        border-radius: 12px;
-        padding: 16px 20px;
-        color: #d1fae5;
-    }
-
-    .review-warning {
-        background: rgba(245, 158, 11, 0.08);
-        border: 1px solid rgba(245, 158, 11, 0.30);
-        border-radius: 12px;
-        padding: 16px 20px;
-        color: #fef3c7;
-    }
-
-    /* ---------- Report ---------- */
-
-    .report-container {
-        background:
-            linear-gradient(
-                145deg,
-                rgba(12, 25, 50, 0.96),
-                rgba(4, 10, 22, 0.98)
-            );
-        border: 1px solid rgba(59, 130, 246, 0.20);
-        border-radius: 16px;
-        padding: 30px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
-    }
-
-    .report-container h1,
-    .report-container h2,
-    .report-container h3 {
-        color: #ffffff;
-    }
-
-    .report-container p,
-    .report-container li {
-        color: #c1cce0;
-        line-height: 1.75;
-    }
-
-    /* ---------- Inputs ---------- */
+    /* ---------- INPUTS ---------- */
 
     textarea,
     input {
-        background-color: #070f20 !important;
+        background-color: #0b1120 !important;
         color: #f8fafc !important;
+        border: 1px solid #1e293b !important;
+    }
+
+    textarea:focus,
+    input:focus {
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 1px #2563eb !important;
     }
 
     [data-testid="stFileUploader"] {
-        background: #070f20;
-        border: 1px dashed rgba(59, 130, 246, 0.45);
-        border-radius: 14px;
-        padding: 12px;
+        background: #080d17;
+        border: 1px dashed #334155;
+        border-radius: 16px;
+        padding: 0.6rem;
     }
 
-    /* ---------- Buttons ---------- */
+    /* ---------- BUTTON ---------- */
 
     .stButton > button {
-        border-radius: 10px;
-        font-weight: 750;
+        width: 100%;
         min-height: 48px;
-        border: 1px solid rgba(59, 130, 246, 0.45);
+        border-radius: 12px;
+        border: 1px solid #2563eb;
         background: linear-gradient(
             135deg,
             #2563eb,
             #1d4ed8
         );
         color: white;
+        font-weight: 750;
+        font-size: 0.95rem;
         transition: all 0.2s ease;
     }
 
     .stButton > button:hover {
         border-color: #60a5fa;
-        box-shadow: 0 0 25px rgba(37, 99, 235, 0.25);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.25);
         transform: translateY(-1px);
     }
 
-    /* ---------- Dataframe ---------- */
+    /* ---------- CARDS ---------- */
+
+    .info-card {
+        background: linear-gradient(
+            145deg,
+            rgba(15, 23, 42, 0.95),
+            rgba(8, 12, 20, 0.98)
+        );
+        border: 1px solid #1e293b;
+        border-radius: 16px;
+        padding: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .card-label {
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .card-value {
+        color: #f8fafc;
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin-top: 0.35rem;
+    }
+
+    /* ---------- METRICS ---------- */
+
+    .metric-card {
+        background: linear-gradient(
+            145deg,
+            #0d1526,
+            #080c14
+        );
+        border: 1px solid #1e3a5f;
+        border-radius: 16px;
+        padding: 1rem;
+        min-height: 105px;
+        box-shadow:
+            0 10px 25px rgba(0, 0, 0, 0.18);
+    }
+
+    .metric-label {
+        color: #7dd3fc;
+        font-size: 0.72rem;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .metric-value {
+        color: #ffffff;
+        font-size: 1.65rem;
+        font-weight: 850;
+        margin-top: 0.35rem;
+    }
+
+    /* ---------- REVIEW ---------- */
+
+    .review-pass {
+        display: inline-block;
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(34, 197, 94, 0.10);
+        border: 1px solid rgba(34, 197, 94, 0.35);
+        color: #86efac;
+        font-size: 0.78rem;
+        font-weight: 800;
+    }
+
+    .review-warning {
+        display: inline-block;
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(245, 158, 11, 0.10);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        color: #fcd34d;
+        font-size: 0.78rem;
+        font-weight: 800;
+    }
+
+    .review-failed {
+        display: inline-block;
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(239, 68, 68, 0.10);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: #fca5a5;
+        font-size: 0.78rem;
+        font-weight: 800;
+    }
+
+    /* ---------- REPORT ---------- */
+
+    .report-container {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(15, 23, 42, 0.96),
+                rgba(5, 9, 17, 0.98)
+            );
+        border: 1px solid #1e293b;
+        border-radius: 20px;
+        padding: 2rem 2.2rem;
+        margin-top: 0.8rem;
+        box-shadow:
+            0 20px 50px rgba(0, 0, 0, 0.22);
+    }
+
+    .report-container h1,
+    .report-container h2,
+    .report-container h3,
+    .report-container h4 {
+        color: #f8fafc !important;
+        margin-top: 1.6rem;
+    }
+
+    .report-container p {
+        color: #cbd5e1 !important;
+        line-height: 1.75;
+    }
+
+    .report-container li {
+        color: #cbd5e1 !important;
+        line-height: 1.7;
+        margin-bottom: 0.4rem;
+    }
+
+    .report-container strong {
+        color: #f8fafc !important;
+    }
+
+    .report-container hr {
+        border-color: #1e293b;
+    }
+
+    /* ---------- DATAFRAME ---------- */
 
     [data-testid="stDataFrame"] {
-        border: 1px solid rgba(59, 130, 246, 0.18);
+        border: 1px solid #1e293b;
         border-radius: 12px;
         overflow: hidden;
     }
 
-    /* ---------- Divider ---------- */
+    /* ---------- DIVIDER ---------- */
 
     hr {
-        border-color: rgba(59, 130, 246, 0.15);
+        border-color: #172033 !important;
+    }
+
+    /* ---------- FOOTER ---------- */
+
+    .footer {
+        text-align: center;
+        color: #475569;
+        font-size: 0.75rem;
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #111827;
     }
 
     </style>
@@ -242,84 +365,192 @@ st.markdown(
 
 
 # ============================================================
-# HEADER
+# HELPERS
 # ============================================================
 
-st.markdown(
+def clean_report_html(report: str) -> str:
     """
-    <div class="app-header">
-        <div class="app-title">MULTI-AGENT OPS CREW</div>
-        <div class="app-subtitle">
-            AI-powered operational intelligence for data-driven business decisions
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+    Remove accidental HTML generated inside the final report
+    while preserving Markdown formatting.
+    """
+
+    if not report:
+        return ""
+
+    cleaned = report
+
+    # Remove complete metric-value blocks.
+    cleaned = re.sub(
+        r'<div\s+class=["\']metric-value["\'][^>]*>.*?</div>',
+        "",
+        cleaned,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+
+    # Remove metric-label blocks.
+    cleaned = re.sub(
+        r'<div\s+class=["\']metric-label["\'][^>]*>.*?</div>',
+        "",
+        cleaned,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+
+    # Remove generic div/span opening and closing tags.
+    cleaned = re.sub(
+        r"</?(?:div|span|section|article|p|strong|em)[^>]*>",
+        "",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+
+    # Remove remaining HTML tags.
+    cleaned = re.sub(
+        r"<[^>]+>",
+        "",
+        cleaned,
+    )
+
+    # Decode a few common escaped HTML entities.
+    cleaned = (
+        cleaned
+        .replace("&nbsp;", " ")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&amp;", "&")
+    )
+
+    # Remove excessive whitespace.
+    cleaned = re.sub(
+        r"\n{3,}",
+        "\n\n",
+        cleaned,
+    )
+
+    return cleaned.strip()
+
+
+def format_metric_name(name: str) -> str:
+    return name.replace("_", " ").title()
+
+
+def review_badge(status: str) -> str:
+    status_upper = status.upper()
+
+    if "PASS_WITH_WARNINGS" in status_upper:
+        return (
+            '<span class="review-warning">'
+            "PASS WITH WARNINGS"
+            "</span>"
+        )
+
+    if "PASS" in status_upper:
+        return (
+            '<span class="review-pass">'
+            "PASS"
+            "</span>"
+        )
+
+    if "FAIL" in status_upper:
+        return (
+            '<span class="review-failed">'
+            "FAILED"
+            "</span>"
+        )
+
+    return (
+        '<span class="review-warning">'
+        f"{status}"
+        "</span>"
+    )
 
 
 # ============================================================
-# INPUT SECTION
+# MAIN
 # ============================================================
 
-col_problem, col_data = st.columns(
-    [1.15, 0.85],
-    gap="large",
-)
+def main() -> None:
 
-
-with col_problem:
-
-    st.markdown(
-        '<div class="section-number">01 — Investigation</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="section-title">Define Your Business Problem</div>',
-        unsafe_allow_html=True,
-    )
+    # ========================================================
+    # HERO
+    # ========================================================
 
     st.markdown(
         """
-        <div class="section-description">
-            Describe the operational problem, performance issue,
-            or business question you want the agent crew to investigate.
+        <div class="hero">
+            <div class="hero-brand">
+                MULTI-AGENT INTELLIGENCE PLATFORM
+            </div>
+
+            <div class="hero-title">
+                Multi-Agent Ops Crew
+            </div>
+
+            <div class="hero-description">
+                Turn operational data and business questions into
+                structured, evidence-based executive insights using
+                research, data analysis, review, and revision agents.
+            </div>
         </div>
         """,
+        unsafe_allow_html=True,
+    )
+
+    # ========================================================
+    # BUSINESS PROBLEM
+    # ========================================================
+
+    st.markdown(
+        '<div class="section-label">01 — Investigation</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '<div class="section-title">'
+        "Define Your Business Problem"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '<div class="section-description">'
+        "Describe the operational problem, performance issue, "
+        "or business question you want the agent crew to investigate."
+        "</div>",
         unsafe_allow_html=True,
     )
 
     problem = st.text_area(
-        "Business Problem",
+        "Business problem",
         placeholder=(
-            "Example: Why has customer support resolution time "
-            "increased over the last four months?"
+            "Example: Why did customer support "
+            "resolution time increase?"
         ),
-        height=150,
+        height=120,
         label_visibility="collapsed",
     )
 
-
-with col_data:
+    # ========================================================
+    # CSV UPLOAD
+    # ========================================================
 
     st.markdown(
-        '<div class="section-number">02 — Data</div>',
+        '<div class="section-label">02 — Data</div>',
         unsafe_allow_html=True,
     )
 
     st.markdown(
-        '<div class="section-title">Upload Company Data</div>',
+        '<div class="section-title">'
+        "Upload Company Data"
+        "</div>",
         unsafe_allow_html=True,
     )
 
     st.markdown(
-        """
-        <div class="section-description">
-            Upload a CSV containing the operational data required
-            for the analysis.
-        </div>
-        """,
+        '<div class="section-description">'
+        "Upload a CSV containing the operational data required "
+        "for the analysis. The system will validate and pass "
+        "the data into the multi-agent workflow."
+        "</div>",
         unsafe_allow_html=True,
     )
 
@@ -328,188 +559,159 @@ with col_data:
         type=["csv"],
     )
 
+    df = None
 
-# ============================================================
-# LOAD CSV
-# ============================================================
+    if uploaded_file is not None:
 
-df = None
+        try:
+            df = pd.read_csv(uploaded_file)
 
-if uploaded_file is not None:
+            validate_support_data(df)
 
-    try:
-
-        df = pd.read_csv(uploaded_file)
-
-        validate_support_data(df)
-
-        st.success(
-            f"Dataset loaded successfully — "
-            f"{len(df):,} rows × {len(df.columns)} columns"
-        )
-
-        with st.expander("Preview Company Dataset"):
-
-            st.dataframe(
-                df,
-                use_container_width=True,
-                height=280,
+            st.success(
+                f"CSV loaded successfully — "
+                f"{len(df):,} rows × {len(df.columns):,} columns."
             )
 
-    except Exception as exc:
+            with st.expander(
+                "Preview uploaded dataset",
+                expanded=False,
+            ):
+                st.dataframe(
+                    df,
+                    use_container_width=True,
+                )
 
-        st.error(
-            f"Invalid CSV file: {exc}"
+        except Exception as exc:
+            st.error(
+                f"Invalid CSV file: {exc}"
+            )
+            df = None
+
+    # ========================================================
+    # ANALYZE BUTTON
+    # ========================================================
+
+    st.markdown(
+        '<div class="section-label">03 — Execute</div>',
+        unsafe_allow_html=True,
+    )
+
+    analyze = st.button(
+        "Analyze Business Problem",
+        type="primary",
+        use_container_width=True,
+    )
+
+    if not analyze:
+        st.markdown(
+            """
+            <div class="footer">
+                Multi-Agent Ops Crew · Research · Analytics ·
+                Quality Control · Executive Intelligence
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
-
-        df = None
-
-
-st.divider()
-
-
-# ============================================================
-# ANALYZE BUTTON
-# ============================================================
-
-analyze = st.button(
-    "Run Multi-Agent Analysis",
-    type="primary",
-    use_container_width=True,
-)
-
-
-if analyze:
-
-    # --------------------------------------------------------
-    # Validation
-    # --------------------------------------------------------
+        return
 
     if not problem.strip():
-
         st.error(
-            "Please describe the business problem before running the analysis."
+            "Please enter a business problem."
         )
-
-        st.stop()
+        return
 
     if df is None:
-
         st.error(
             "Please upload a valid company CSV file."
         )
+        return
 
-        st.stop()
-
-    # --------------------------------------------------------
-    # Initial State
-    # --------------------------------------------------------
+    # ========================================================
+    # INITIAL STATE
+    # ========================================================
 
     company_data = df.to_dict(
         orient="records"
     )
 
     initial_state: OpsState = {
-
         "problem": problem.strip(),
-
         "company_data": company_data,
-
         "plan": {},
-
         "research_findings": {},
-
         "data_findings": {},
-
         "business_analysis": {},
-
         "review": {},
-
         "revision": {},
-
         "revision_count": 0,
-
         "status": "STARTED",
-
         "final_report": {},
     }
 
-    # --------------------------------------------------------
-    # Run Graph
-    # --------------------------------------------------------
+    # ========================================================
+    # RUN WORKFLOW
+    # ========================================================
 
-    with st.status(
-        "Running Multi-Agent Ops Crew...",
-        expanded=True,
-    ) as workflow_status:
+    with st.spinner(
+        "Running Multi-Agent Ops Crew..."
+    ):
 
         try:
-
-            st.write("Initializing agent workflow...")
-
             graph = build_graph()
-
-            st.write("Running research, data analysis and review agents...")
 
             result = graph.invoke(
                 initial_state
             )
 
-            workflow_status.update(
-                label="Analysis completed successfully",
-                state="complete",
-                expanded=False,
-            )
-
         except Exception as exc:
 
-            workflow_status.update(
-                label="Workflow failed",
-                state="error",
-                expanded=True,
-            )
-
             st.error(
-                f"Workflow failed: {exc}"
+                "Workflow failed: "
+                f"{exc}"
             )
 
-            st.stop()
+            return
 
     # ========================================================
     # WORKFLOW STATUS
     # ========================================================
 
     st.markdown(
-        '<div class="section-number">03 — Workflow</div>',
+        '<div class="section-label">04 — Workflow</div>',
         unsafe_allow_html=True,
     )
 
     st.markdown(
-        '<div class="section-title">Workflow Status</div>',
+        '<div class="section-title">'
+        "Workflow Status"
+        "</div>",
         unsafe_allow_html=True,
     )
 
     status_col, revision_col = st.columns(2)
 
     with status_col:
-
-        status = result.get(
+        status_value = result.get(
             "status",
             "UNKNOWN",
         )
 
         st.markdown(
             f"""
-            <div class="status-card">
-                <div class="metric-label">Workflow Status</div>
-                <div class="metric-value">{status}</div>
+            <div class="info-card">
+                <div class="card-label">
+                    Current Status
+                </div>
+                <div class="card-value">
+                    {status_value}
+                </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
     with revision_col:
-
         revision_count = result.get(
             "revision_count",
             0,
@@ -517,17 +719,20 @@ if analyze:
 
         st.markdown(
             f"""
-            <div class="status-card">
-                <div class="metric-label">Revision Attempts</div>
-                <div class="metric-value">{revision_count}</div>
+            <div class="info-card">
+                <div class="card-label">
+                    Revision Attempts
+                </div>
+                <div class="card-value">
+                    {revision_count}
+                </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-
     # ========================================================
-    # DATA FINDINGS
+    # KEY METRICS
     # ========================================================
 
     data_findings = result.get(
@@ -540,18 +745,17 @@ if analyze:
         {},
     )
 
-
     if metrics:
 
-        st.divider()
-
         st.markdown(
-            '<div class="section-number">04 — Analytics</div>',
+            '<div class="section-label">05 — Analytics</div>',
             unsafe_allow_html=True,
         )
 
         st.markdown(
-            '<div class="section-title">Key Metrics</div>',
+            '<div class="section-title">'
+            "Key Metrics"
+            "</div>",
             unsafe_allow_html=True,
         )
 
@@ -559,59 +763,44 @@ if analyze:
             metrics.items()
         )
 
-        columns = st.columns(
-            min(len(metric_items), 4)
-        )
-
-        for index, (name, value) in enumerate(
-            metric_items
+        for start in range(
+            0,
+            len(metric_items),
+            3,
         ):
 
-            column = columns[
-                index % len(columns)
+            row = metric_items[
+                start:start + 3
             ]
 
-            with column:
+            columns = st.columns(
+                len(row)
+            )
 
-                formatted_name = (
-                    str(name)
-                    .replace("_", " ")
-                    .title()
-                )
+            for column, (
+                name,
+                value,
+            ) in zip(
+                columns,
+                row,
+            ):
 
-                if isinstance(value, float):
+                with column:
 
-                    formatted_value = (
-                        f"{value:,.2f}"
-                    )
+                    st.markdown(
+                        f"""
+                        <div class="metric-card">
+                            <div class="metric-label">
+                                {format_metric_name(name)}
+                            </div>
 
-                elif isinstance(value, int):
-
-                    formatted_value = (
-                        f"{value:,}"
-                    )
-
-                else:
-
-                    formatted_value = str(
-                        value
-                    )
-
-                st.markdown(
-                    f"""
-                    <div class="metric-card">
-                        <div class="metric-label">
-                            {formatted_name}
+                            <div class="metric-value">
+                                {value}
+                            </div>
                         </div>
-
-                        <div class="metric-value">
-                            {formatted_value}
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
     # ========================================================
     # DATA VISUALIZATION
@@ -619,43 +808,68 @@ if analyze:
 
     if not df.empty:
 
-        numeric_columns = df.select_dtypes(
-            include="number"
-        ).columns.tolist()
+        numeric_columns = list(
+            df.select_dtypes(
+                include="number"
+            ).columns
+        )
 
         if numeric_columns:
 
-            st.divider()
-
             st.markdown(
-                '<div class="section-number">05 — Data Visualization</div>',
+                '<div class="section-label">'
+                "06 — Data Visualization"
+                "</div>",
                 unsafe_allow_html=True,
             )
 
             st.markdown(
-                '<div class="section-title">Operational Trends</div>',
+                '<div class="section-title">'
+                "Operational Trends"
+                "</div>",
                 unsafe_allow_html=True,
             )
 
-            selected_column = st.selectbox(
+            selected_metric = st.selectbox(
                 "Select metric to visualize",
                 numeric_columns,
             )
 
-            chart_df = df[
-                [selected_column]
-            ].copy()
+            chart_df = df.copy()
 
-            chart_df.index = range(
-                1,
-                len(chart_df) + 1
+            fig = px.line(
+                chart_df,
+                y=selected_metric,
+                markers=True,
+                template="plotly_dark",
             )
 
-            st.line_chart(
-                chart_df,
+            fig.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                margin=dict(
+                    l=10,
+                    r=10,
+                    t=20,
+                    b=10,
+                ),
+                font=dict(
+                    color="#cbd5e1"
+                ),
+                xaxis=dict(
+                    showgrid=True,
+                    gridcolor="#172033",
+                ),
+                yaxis=dict(
+                    showgrid=True,
+                    gridcolor="#172033",
+                ),
+            )
+
+            st.plotly_chart(
+                fig,
                 use_container_width=True,
             )
-
 
     # ========================================================
     # QUALITY REVIEW
@@ -668,15 +882,17 @@ if analyze:
 
     if review:
 
-        st.divider()
-
         st.markdown(
-            '<div class="section-number">06 — Quality Control</div>',
+            '<div class="section-label">'
+            "07 — Quality Control"
+            "</div>",
             unsafe_allow_html=True,
         )
 
         st.markdown(
-            '<div class="section-title">Quality Review</div>',
+            '<div class="section-title">'
+            "Quality Review"
+            "</div>",
             unsafe_allow_html=True,
         )
 
@@ -685,48 +901,35 @@ if analyze:
             "UNKNOWN",
         )
 
-        if "PASS" in str(review_status).upper():
-
-            st.markdown(
-                f"""
-                <div class="review-pass">
-                    <strong>Review Status:</strong>
-                    {review_status}
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-        else:
-
-            st.markdown(
-                f"""
-                <div class="review-warning">
-                    <strong>Review Status:</strong>
-                    {review_status}
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-        review_analysis = review.get(
-            "analysis",
-            "",
+        st.markdown(
+            f"""
+            <div style="margin-bottom: 1rem;">
+                <strong style="color:#cbd5e1;">
+                    Review Status:
+                </strong>
+                &nbsp;
+                {review_badge(review_status)}
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
-        if review_analysis:
+        with st.expander(
+            "View Detailed Review",
+            expanded=False,
+        ):
 
-            with st.expander(
-                "View Detailed Review"
-            ):
+            review_analysis = review.get(
+                "analysis",
+                "No review available.",
+            )
 
-                st.markdown(
-                    review_analysis
-                )
-
+            st.markdown(
+                review_analysis
+            )
 
     # ========================================================
-    # FINAL REPORT
+    # FINAL EXECUTIVE REPORT
     # ========================================================
 
     final_report = result.get(
@@ -739,19 +942,25 @@ if analyze:
         "",
     )
 
-    st.divider()
-
     st.markdown(
-        '<div class="section-number">07 — Executive Intelligence</div>',
+        '<div class="section-label">'
+        "08 — Executive Intelligence"
+        "</div>",
         unsafe_allow_html=True,
     )
 
     st.markdown(
-        '<div class="section-title">Final Executive Report</div>',
+        '<div class="section-title">'
+        "Final Executive Report"
+        "</div>",
         unsafe_allow_html=True,
     )
 
     if report:
+
+        clean_report = clean_report_html(
+            report
+        )
 
         st.markdown(
             '<div class="report-container">',
@@ -759,11 +968,11 @@ if analyze:
         )
 
         st.markdown(
-            report
+            clean_report
         )
 
         st.markdown(
-            '</div>',
+            "</div>",
             unsafe_allow_html=True,
         )
 
@@ -773,23 +982,24 @@ if analyze:
             "No final report was generated."
         )
 
+    # ========================================================
+    # FOOTER
+    # ========================================================
+
+    st.markdown(
+        """
+        <div class="footer">
+            Multi-Agent Ops Crew ·
+            Evidence-Based Operational Intelligence
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 # ============================================================
-# FOOTER
+# ENTRY POINT
 # ============================================================
 
-st.markdown(
-    """
-    <div style="
-        text-align:center;
-        margin-top:50px;
-        padding-top:20px;
-        border-top:1px solid rgba(59,130,246,0.12);
-        color:#536783;
-        font-size:0.75rem;
-    ">
-        Multi-Agent Ops Crew · Research · Data · Review · Intelligence
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+if __name__ == "__main__":
+    main()
