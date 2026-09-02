@@ -1,26 +1,25 @@
-from typing import TypedDict
-
-from pydantic import BaseModel
+from typing import Any, TypedDict
 
 
-class ResearchSource(BaseModel):
-    title: str
-    url: str
-    snippet: str
+class OpsState(TypedDict, total=False):
+    """Shared state passed between all agents in the workflow."""
 
-
-class ResearchResult(BaseModel):
-    analysis: str
-    sources: list[ResearchSource]
-
-
-class OpsState(TypedDict):
     problem: str
-    plan: dict
-    research_findings: dict
-    data_findings: dict
-    business_analysis: dict
-    review: dict
-    revision: dict
+
+    plan: dict[str, Any]
+
+    research_findings: dict[str, Any]
+
+    data_findings: dict[str, Any]
+
+    business_analysis: dict[str, Any]
+
+    review: dict[str, Any]
+
+    revision: dict[str, Any]
+
+    revision_count: int
+
     status: str
-    final_report: dict
+
+    final_report: dict[str, Any]
