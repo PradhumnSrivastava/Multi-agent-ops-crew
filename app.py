@@ -6,9 +6,9 @@ from multi_agent_ops.state import OpsState
 from multi_agent_ops.tools.data_tools import validate_support_data
 
 
-# ---------------------------------------------------------
+# ============================================================
 # PAGE CONFIG
-# ---------------------------------------------------------
+# ============================================================
 
 st.set_page_config(
     page_title="Multi-Agent Ops Crew",
@@ -17,331 +17,222 @@ st.set_page_config(
 )
 
 
-# ---------------------------------------------------------
+# ============================================================
 # CUSTOM CSS
-# ---------------------------------------------------------
+# ============================================================
 
 st.markdown(
     """
     <style>
 
-    /* ---------- GLOBAL ---------- */
+    /* ---------- Global ---------- */
 
     .stApp {
         background:
             radial-gradient(
                 circle at 10% 0%,
-                rgba(37, 99, 235, 0.12),
-                transparent 32%
+                rgba(15, 65, 130, 0.20),
+                transparent 35%
             ),
             radial-gradient(
                 circle at 90% 10%,
-                rgba(14, 165, 233, 0.08),
-                transparent 28%
+                rgba(20, 45, 100, 0.15),
+                transparent 35%
             ),
-            #050914;
-        color: #e5e7eb;
+            #030712;
+        color: #f8fafc;
     }
 
-    .block-container {
-        max-width: 1180px;
-        padding-top: 2rem;
+    .main .block-container {
+        max-width: 1450px;
+        padding-top: 2.5rem;
         padding-bottom: 4rem;
     }
 
-    /* ---------- HIDE STREAMLIT UI ---------- */
+    /* ---------- Header ---------- */
 
-    #MainMenu {
-        visibility: hidden;
+    .app-header {
+        padding: 10px 0 28px 0;
+        border-bottom: 1px solid rgba(59, 130, 246, 0.20);
+        margin-bottom: 35px;
     }
 
-    footer {
-        visibility: hidden;
-    }
-
-    header {
-        background: transparent !important;
-    }
-
-    /* ---------- HERO ---------- */
-
-    .hero {
-        position: relative;
-        overflow: hidden;
-        padding: 3.5rem 3.2rem;
-        margin-bottom: 2.8rem;
-        border-radius: 24px;
-        border: 1px solid rgba(59, 130, 246, 0.35);
-
-        background:
-            linear-gradient(
-                135deg,
-                rgba(15, 23, 42, 0.98),
-                rgba(8, 18, 40, 0.96)
-            );
-
-        box-shadow:
-            0 30px 80px rgba(0, 0, 0, 0.35),
-            inset 0 1px 0 rgba(255, 255, 255, 0.04);
-    }
-
-    .hero::before {
-        content: "";
-        position: absolute;
-        width: 420px;
-        height: 420px;
-        right: -180px;
-        top: -230px;
-        border-radius: 50%;
-        background: rgba(37, 99, 235, 0.15);
-        filter: blur(10px);
-    }
-
-    .hero-badge {
-        display: inline-block;
-        padding: 0.45rem 0.9rem;
-        margin-bottom: 1.1rem;
-
-        border-radius: 999px;
-        border: 1px solid rgba(59, 130, 246, 0.55);
-
-        background: rgba(30, 64, 175, 0.18);
-        color: #60a5fa;
-
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-    }
-
-    .hero-title {
+    .app-title {
+        color: #ffffff;
+        font-size: 2.5rem;
+        font-weight: 900;
+        letter-spacing: 1px;
         margin: 0;
-        color: #f8fafc;
-        font-size: 3.4rem;
-        line-height: 1.05;
-        font-weight: 800;
-        letter-spacing: -0.04em;
     }
 
-    .hero-description {
-        max-width: 780px;
-        margin-top: 1.2rem;
-
-        color: #94a3b8;
-        font-size: 1.08rem;
-        line-height: 1.75;
+    .app-subtitle {
+        color: #7f93b8;
+        font-size: 0.98rem;
+        margin-top: 8px;
     }
 
-    /* ---------- SECTION LABEL ---------- */
+    /* ---------- Section Headers ---------- */
 
-    .section-label {
-        margin-top: 1.2rem;
-        margin-bottom: 0.45rem;
-
-        color: #60a5fa;
+    .section-number {
+        color: #3b82f6;
         font-size: 0.72rem;
         font-weight: 800;
-        letter-spacing: 0.15em;
+        letter-spacing: 2px;
         text-transform: uppercase;
+        margin-bottom: 5px;
     }
 
     .section-title {
-        margin-bottom: 0.5rem;
-
         color: #f8fafc;
-        font-size: 1.65rem;
-        font-weight: 750;
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin-bottom: 5px;
     }
 
     .section-description {
-        margin-bottom: 1.2rem;
-
-        color: #64748b;
-        line-height: 1.65;
+        color: #7183a3;
+        font-size: 0.90rem;
+        margin-bottom: 18px;
     }
 
-    /* ---------- INPUTS ---------- */
+    /* ---------- Cards ---------- */
 
-    .stTextArea textarea,
-    .stTextInput input {
-        background: #0b1220 !important;
-        color: #e5e7eb !important;
-
-        border: 1px solid #1e293b !important;
-        border-radius: 12px !important;
-    }
-
-    .stTextArea textarea:focus,
-    .stTextInput input:focus {
-        border-color: #2563eb !important;
-        box-shadow: 0 0 0 1px #2563eb !important;
-    }
-
-    [data-testid="stFileUploader"] {
-        background: #0b1220;
-        border: 1px solid #1e293b;
+    .metric-card {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(15, 32, 65, 0.95),
+                rgba(5, 12, 28, 0.95)
+            );
+        border: 1px solid rgba(59, 130, 246, 0.22);
         border-radius: 14px;
-        padding: 0.8rem;
-    }
-
-    /* ---------- BUTTON ---------- */
-
-    .stButton > button {
-        width: 100%;
-
-        min-height: 3.2rem;
-
-        border-radius: 12px;
-        border: 1px solid #2563eb;
-
-        background:
-            linear-gradient(
-                135deg,
-                #2563eb,
-                #1d4ed8
-            );
-
-        color: white;
-        font-size: 0.95rem;
-        font-weight: 700;
-
-        transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
-    }
-
-    .stButton > button:hover {
-        transform: translateY(-1px);
-
-        box-shadow:
-            0 12px 30px rgba(37, 99, 235, 0.25);
-    }
-
-    /* ---------- METRICS ---------- */
-
-    [data-testid="stMetric"] {
-        padding: 1.1rem;
-
-        background:
-            linear-gradient(
-                145deg,
-                rgba(15, 23, 42, 0.95),
-                rgba(8, 15, 28, 0.95)
-            );
-
-        border: 1px solid #1e293b;
-        border-radius: 15px;
-
+        padding: 18px 18px;
         min-height: 110px;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.22);
     }
 
-    [data-testid="stMetricLabel"] {
-        color: #64748b !important;
+    .metric-label {
+        color: #7183a3;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
     }
 
-    [data-testid="stMetricValue"] {
-        color: #f8fafc !important;
+    .metric-value {
+        color: #ffffff;
+        font-size: 1.65rem;
+        font-weight: 850;
+        margin-top: 8px;
     }
 
-    /* ---------- CARDS ---------- */
-
-    .info-card {
-        padding: 1.35rem;
-
-        border-radius: 16px;
-        border: 1px solid #1e293b;
-
+    .status-card {
         background:
             linear-gradient(
                 145deg,
-                rgba(15, 23, 42, 0.96),
-                rgba(8, 15, 28, 0.96)
+                rgba(10, 29, 58, 0.95),
+                rgba(4, 12, 25, 0.95)
             );
+        border: 1px solid rgba(59, 130, 246, 0.25);
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 10px;
     }
 
-    .card-title {
-        margin-bottom: 0.45rem;
+    /* ---------- Review ---------- */
 
-        color: #f8fafc;
-        font-weight: 700;
-        font-size: 1rem;
+    .review-pass {
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.30);
+        border-radius: 12px;
+        padding: 16px 20px;
+        color: #d1fae5;
     }
 
-    .card-text {
-        color: #94a3b8;
-        line-height: 1.65;
+    .review-warning {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.30);
+        border-radius: 12px;
+        padding: 16px 20px;
+        color: #fef3c7;
     }
 
-    /* ---------- REPORT ---------- */
+    /* ---------- Report ---------- */
 
     .report-container {
-        padding: 2rem;
-
-        border-radius: 18px;
-        border: 1px solid #1e293b;
-
         background:
             linear-gradient(
                 145deg,
-                rgba(15, 23, 42, 0.96),
-                rgba(7, 13, 25, 0.98)
+                rgba(12, 25, 50, 0.96),
+                rgba(4, 10, 22, 0.98)
             );
-
-        box-shadow:
-            0 20px 60px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(59, 130, 246, 0.20);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
     }
 
     .report-container h1,
     .report-container h2,
     .report-container h3 {
-        color: #f8fafc;
+        color: #ffffff;
     }
 
     .report-container p,
     .report-container li {
-        color: #cbd5e1;
+        color: #c1cce0;
         line-height: 1.75;
     }
 
-    .report-container strong {
-        color: #f8fafc;
+    /* ---------- Inputs ---------- */
+
+    textarea,
+    input {
+        background-color: #070f20 !important;
+        color: #f8fafc !important;
     }
 
-    /* ---------- STATUS ---------- */
-
-    .status-card {
-        padding: 1.3rem 1.5rem;
-
-        border-radius: 16px;
-        border: 1px solid rgba(34, 197, 94, 0.25);
-
-        background:
-            linear-gradient(
-                135deg,
-                rgba(22, 101, 52, 0.12),
-                rgba(15, 23, 42, 0.95)
-            );
+    [data-testid="stFileUploader"] {
+        background: #070f20;
+        border: 1px dashed rgba(59, 130, 246, 0.45);
+        border-radius: 14px;
+        padding: 12px;
     }
 
-    .status-label {
-        color: #64748b;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-    }
+    /* ---------- Buttons ---------- */
 
-    .status-value {
-        margin-top: 0.35rem;
-
-        color: #86efac;
-        font-size: 1.2rem;
+    .stButton > button {
+        border-radius: 10px;
         font-weight: 750;
+        min-height: 48px;
+        border: 1px solid rgba(59, 130, 246, 0.45);
+        background: linear-gradient(
+            135deg,
+            #2563eb,
+            #1d4ed8
+        );
+        color: white;
+        transition: all 0.2s ease;
     }
 
-    /* ---------- DIVIDER ---------- */
+    .stButton > button:hover {
+        border-color: #60a5fa;
+        box-shadow: 0 0 25px rgba(37, 99, 235, 0.25);
+        transform: translateY(-1px);
+    }
+
+    /* ---------- Dataframe ---------- */
+
+    [data-testid="stDataFrame"] {
+        border: 1px solid rgba(59, 130, 246, 0.18);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    /* ---------- Divider ---------- */
 
     hr {
-        border-color: #172033 !important;
+        border-color: rgba(59, 130, 246, 0.15);
     }
 
     </style>
@@ -350,19 +241,29 @@ st.markdown(
 )
 
 
-# ---------------------------------------------------------
-# HERO
-# ---------------------------------------------------------
+# ============================================================
+# HEADER
+# ============================================================
+
+st.markdown(
+    """
+    <div class="app-header">
+        <div class="app-title">MULTI-AGENT OPS CREW</div>
+        <div class="app-subtitle">
+            AI-powered operational intelligence for data-driven business decisions
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 
-
-
-# ---------------------------------------------------------
+# ============================================================
 # INPUT SECTION
-# ---------------------------------------------------------
+# ============================================================
 
 col_problem, col_data = st.columns(
-    [1.15, 1],
+    [1.15, 0.85],
     gap="large",
 )
 
@@ -370,7 +271,7 @@ col_problem, col_data = st.columns(
 with col_problem:
 
     st.markdown(
-        '<div class="section-label">01 — Investigation</div>',
+        '<div class="section-number">01 — Investigation</div>',
         unsafe_allow_html=True,
     )
 
@@ -390,12 +291,12 @@ with col_problem:
     )
 
     problem = st.text_area(
-        "Business problem",
+        "Business Problem",
         placeholder=(
             "Example: Why has customer support resolution time "
             "increased over the last four months?"
         ),
-        height=170,
+        height=150,
         label_visibility="collapsed",
     )
 
@@ -403,7 +304,7 @@ with col_problem:
 with col_data:
 
     st.markdown(
-        '<div class="section-label">02 — Data</div>',
+        '<div class="section-number">02 — Data</div>',
         unsafe_allow_html=True,
     )
 
@@ -416,8 +317,7 @@ with col_data:
         """
         <div class="section-description">
             Upload a CSV containing the operational data required
-            for the analysis. The system will validate and pass
-            the data into the multi-agent workflow.
+            for the analysis.
         </div>
         """,
         unsafe_allow_html=True,
@@ -426,13 +326,12 @@ with col_data:
     uploaded_file = st.file_uploader(
         "Company operational dataset",
         type=["csv"],
-        label_visibility="collapsed",
     )
 
 
-# ---------------------------------------------------------
-# LOAD DATA
-# ---------------------------------------------------------
+# ============================================================
+# LOAD CSV
+# ============================================================
 
 df = None
 
@@ -446,10 +345,10 @@ if uploaded_file is not None:
 
         st.success(
             f"Dataset loaded successfully — "
-            f"{len(df):,} rows × {len(df.columns):,} columns"
+            f"{len(df):,} rows × {len(df.columns)} columns"
         )
 
-        with st.expander("Preview Company Data"):
+        with st.expander("Preview Company Dataset"):
 
             st.dataframe(
                 df,
@@ -466,260 +365,291 @@ if uploaded_file is not None:
         df = None
 
 
-# ---------------------------------------------------------
-# ANALYZE BUTTON
-# ---------------------------------------------------------
+st.divider()
 
-st.markdown("<br>", unsafe_allow_html=True)
+
+# ============================================================
+# ANALYZE BUTTON
+# ============================================================
 
 analyze = st.button(
     "Run Multi-Agent Analysis",
     type="primary",
+    use_container_width=True,
 )
 
 
-if not analyze:
-    st.stop()
+if analyze:
 
+    # --------------------------------------------------------
+    # Validation
+    # --------------------------------------------------------
 
-# ---------------------------------------------------------
-# VALIDATION
-# ---------------------------------------------------------
-
-if not problem.strip():
-
-    st.error(
-        "Please describe the business problem before starting the analysis."
-    )
-
-    st.stop()
-
-
-if df is None:
-
-    st.error(
-        "Please upload a valid company CSV file before starting the analysis."
-    )
-
-    st.stop()
-
-
-# ---------------------------------------------------------
-# INITIAL STATE
-# ---------------------------------------------------------
-
-company_data = df.to_dict(
-    orient="records"
-)
-
-
-initial_state: OpsState = {
-    "problem": problem.strip(),
-    "company_data": company_data,
-    "plan": {},
-    "research_findings": {},
-    "data_findings": {},
-    "business_analysis": {},
-    "review": {},
-    "revision": {},
-    "revision_count": 0,
-    "status": "STARTED",
-    "final_report": {},
-}
-
-
-# ---------------------------------------------------------
-# RUN WORKFLOW
-# ---------------------------------------------------------
-
-st.divider()
-
-st.markdown(
-    '<div class="section-label">03 — Agent Workflow</div>',
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    '<div class="section-title">Multi-Agent Analysis</div>',
-    unsafe_allow_html=True,
-)
-
-with st.spinner(
-    "Researching, analyzing data, reviewing findings, and generating the executive report..."
-):
-
-    try:
-
-        graph = build_graph()
-
-        result = graph.invoke(
-            initial_state
-        )
-
-    except Exception as exc:
+    if not problem.strip():
 
         st.error(
-            f"Workflow failed: {exc}"
+            "Please describe the business problem before running the analysis."
         )
 
         st.stop()
 
+    if df is None:
 
-# ---------------------------------------------------------
-# WORKFLOW STATUS
-# ---------------------------------------------------------
-
-st.divider()
-
-st.markdown(
-    '<div class="section-label">04 — Workflow</div>',
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    '<div class="section-title">Workflow Status</div>',
-    unsafe_allow_html=True,
-)
-
-status = result.get(
-    "status",
-    "UNKNOWN",
-)
-
-revision_count = result.get(
-    "revision_count",
-    0,
-)
-
-status_col, revision_col = st.columns(
-    2,
-)
-
-with status_col:
-
-    st.markdown(
-        f"""
-        <div class="status-card">
-
-            <div class="status-label">
-                Workflow Status
-            </div>
-
-            <div class="status-value">
-                {status}
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-with revision_col:
-
-    st.metric(
-        "Revision Attempts",
-        revision_count,
-    )
-
-
-# ---------------------------------------------------------
-# DATA FINDINGS
-# ---------------------------------------------------------
-
-data_findings = result.get(
-    "data_findings",
-    {},
-)
-
-metrics = data_findings.get(
-    "metrics",
-    {},
-)
-
-
-if metrics:
-
-    st.divider()
-
-    st.markdown(
-        '<div class="section-label">05 — Analytics</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="section-title">Key Performance Metrics</div>',
-        unsafe_allow_html=True,
-    )
-
-    metric_items = list(
-        metrics.items()
-    )
-
-    # Streamlit supports a maximum practical number of
-    # columns in a single row, so split into rows of four.
-
-    for start in range(
-        0,
-        len(metric_items),
-        4,
-    ):
-
-        row = metric_items[
-            start:start + 4
-        ]
-
-        columns = st.columns(
-            len(row)
+        st.error(
+            "Please upload a valid company CSV file."
         )
 
-        for column, (name, value) in zip(
-            columns,
-            row,
+        st.stop()
+
+    # --------------------------------------------------------
+    # Initial State
+    # --------------------------------------------------------
+
+    company_data = df.to_dict(
+        orient="records"
+    )
+
+    initial_state: OpsState = {
+
+        "problem": problem.strip(),
+
+        "company_data": company_data,
+
+        "plan": {},
+
+        "research_findings": {},
+
+        "data_findings": {},
+
+        "business_analysis": {},
+
+        "review": {},
+
+        "revision": {},
+
+        "revision_count": 0,
+
+        "status": "STARTED",
+
+        "final_report": {},
+    }
+
+    # --------------------------------------------------------
+    # Run Graph
+    # --------------------------------------------------------
+
+    with st.status(
+        "Running Multi-Agent Ops Crew...",
+        expanded=True,
+    ) as workflow_status:
+
+        try:
+
+            st.write("Initializing agent workflow...")
+
+            graph = build_graph()
+
+            st.write("Running research, data analysis and review agents...")
+
+            result = graph.invoke(
+                initial_state
+            )
+
+            workflow_status.update(
+                label="Analysis completed successfully",
+                state="complete",
+                expanded=False,
+            )
+
+        except Exception as exc:
+
+            workflow_status.update(
+                label="Workflow failed",
+                state="error",
+                expanded=True,
+            )
+
+            st.error(
+                f"Workflow failed: {exc}"
+            )
+
+            st.stop()
+
+    # ========================================================
+    # WORKFLOW STATUS
+    # ========================================================
+
+    st.markdown(
+        '<div class="section-number">03 — Workflow</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '<div class="section-title">Workflow Status</div>',
+        unsafe_allow_html=True,
+    )
+
+    status_col, revision_col = st.columns(2)
+
+    with status_col:
+
+        status = result.get(
+            "status",
+            "UNKNOWN",
+        )
+
+        st.markdown(
+            f"""
+            <div class="status-card">
+                <div class="metric-label">Workflow Status</div>
+                <div class="metric-value">{status}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with revision_col:
+
+        revision_count = result.get(
+            "revision_count",
+            0,
+        )
+
+        st.markdown(
+            f"""
+            <div class="status-card">
+                <div class="metric-label">Revision Attempts</div>
+                <div class="metric-value">{revision_count}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+    # ========================================================
+    # DATA FINDINGS
+    # ========================================================
+
+    data_findings = result.get(
+        "data_findings",
+        {},
+    )
+
+    metrics = data_findings.get(
+        "metrics",
+        {},
+    )
+
+
+    if metrics:
+
+        st.divider()
+
+        st.markdown(
+            '<div class="section-number">04 — Analytics</div>',
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            '<div class="section-title">Key Metrics</div>',
+            unsafe_allow_html=True,
+        )
+
+        metric_items = list(
+            metrics.items()
+        )
+
+        columns = st.columns(
+            min(len(metric_items), 4)
+        )
+
+        for index, (name, value) in enumerate(
+            metric_items
         ):
+
+            column = columns[
+                index % len(columns)
+            ]
 
             with column:
 
-                display_name = (
-                    name
+                formatted_name = (
+                    str(name)
                     .replace("_", " ")
                     .title()
                 )
 
-                st.metric(
-                    display_name,
-                    value,
+                if isinstance(value, float):
+
+                    formatted_value = (
+                        f"{value:,.2f}"
+                    )
+
+                elif isinstance(value, int):
+
+                    formatted_value = (
+                        f"{value:,}"
+                    )
+
+                else:
+
+                    formatted_value = str(
+                        value
+                    )
+
+                st.markdown(
+                    f"""
+                    <div class="metric-card">
+                        <div class="metric-label">
+                            {formatted_name}
+                        </div>
+
+                        <div class="metric-value">
+                            {formatted_value}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
                 )
 
 
-# ---------------------------------------------------------
-# DATA VISUALIZATION
-# ---------------------------------------------------------
+    # ========================================================
+    # DATA VISUALIZATION
+    # ========================================================
 
-if len(df) > 1:
+    if not df.empty:
 
-    numeric_columns = df.select_dtypes(
-        include="number"
-    ).columns.tolist()
+        numeric_columns = df.select_dtypes(
+            include="number"
+        ).columns.tolist()
 
-    if numeric_columns:
+        if numeric_columns:
 
-        st.markdown(
-            '<div class="section-title">Data Overview</div>',
-            unsafe_allow_html=True,
-        )
+            st.divider()
 
-        selected_columns = st.multiselect(
-            "Select numeric columns to visualize",
-            numeric_columns,
-            default=numeric_columns[:4],
-        )
+            st.markdown(
+                '<div class="section-number">05 — Data Visualization</div>',
+                unsafe_allow_html=True,
+            )
 
-        if selected_columns:
+            st.markdown(
+                '<div class="section-title">Operational Trends</div>',
+                unsafe_allow_html=True,
+            )
+
+            selected_column = st.selectbox(
+                "Select metric to visualize",
+                numeric_columns,
+            )
 
             chart_df = df[
-                selected_columns
-            ]
+                [selected_column]
+            ].copy()
+
+            chart_df.index = range(
+                1,
+                len(chart_df) + 1
+            )
 
             st.line_chart(
                 chart_df,
@@ -727,122 +657,138 @@ if len(df) > 1:
             )
 
 
-# ---------------------------------------------------------
-# QUALITY REVIEW
-# ---------------------------------------------------------
+    # ========================================================
+    # QUALITY REVIEW
+    # ========================================================
 
-review = result.get(
-    "review",
-    {},
-)
+    review = result.get(
+        "review",
+        {},
+    )
+
+    if review:
+
+        st.divider()
+
+        st.markdown(
+            '<div class="section-number">06 — Quality Control</div>',
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            '<div class="section-title">Quality Review</div>',
+            unsafe_allow_html=True,
+        )
+
+        review_status = review.get(
+            "review_status",
+            "UNKNOWN",
+        )
+
+        if "PASS" in str(review_status).upper():
+
+            st.markdown(
+                f"""
+                <div class="review-pass">
+                    <strong>Review Status:</strong>
+                    {review_status}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        else:
+
+            st.markdown(
+                f"""
+                <div class="review-warning">
+                    <strong>Review Status:</strong>
+                    {review_status}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        review_analysis = review.get(
+            "analysis",
+            "",
+        )
+
+        if review_analysis:
+
+            with st.expander(
+                "View Detailed Review"
+            ):
+
+                st.markdown(
+                    review_analysis
+                )
 
 
-if review:
+    # ========================================================
+    # FINAL REPORT
+    # ========================================================
+
+    final_report = result.get(
+        "final_report",
+        {},
+    )
+
+    report = final_report.get(
+        "report",
+        "",
+    )
 
     st.divider()
 
     st.markdown(
-        '<div class="section-label">06 — Quality Control</div>',
+        '<div class="section-number">07 — Executive Intelligence</div>',
         unsafe_allow_html=True,
     )
 
     st.markdown(
-        '<div class="section-title">Quality Review</div>',
+        '<div class="section-title">Final Executive Report</div>',
         unsafe_allow_html=True,
     )
 
-    review_status = review.get(
-        "review_status",
-        "UNKNOWN",
-    )
+    if report:
 
-    st.metric(
-        "Review Status",
-        review_status,
-    )
+        st.markdown(
+            '<div class="report-container">',
+            unsafe_allow_html=True,
+        )
 
-    review_analysis = review.get(
-        "analysis",
-        "",
-    )
+        st.markdown(
+            report
+        )
 
-    if review_analysis:
+        st.markdown(
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
-        with st.expander(
-            "View Review Details"
-        ):
+    else:
 
-            st.markdown(
-                review_analysis
-            )
+        st.warning(
+            "No final report was generated."
+        )
 
 
-# ---------------------------------------------------------
-# FINAL EXECUTIVE REPORT
-# ---------------------------------------------------------
-
-final_report = result.get(
-    "final_report",
-    {},
-)
-
-report = final_report.get(
-    "report",
-    "",
-)
-
-
-st.divider()
-
-st.markdown(
-    '<div class="section-label">07 — Executive Output</div>',
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    '<div class="section-title">Final Executive Report</div>',
-    unsafe_allow_html=True,
-)
-
-
-if report:
-
-    st.markdown(
-        '<div class="report-container">',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        report
-    )
-
-    st.markdown(
-        "</div>",
-        unsafe_allow_html=True,
-    )
-
-else:
-
-    st.warning(
-        "No final executive report was generated."
-    )
-
-
-# ---------------------------------------------------------
+# ============================================================
 # FOOTER
-# ---------------------------------------------------------
+# ============================================================
 
 st.markdown(
     """
     <div style="
-        margin-top: 3rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid #172033;
-        text-align: center;
-        color: #475569;
-        font-size: 0.78rem;
+        text-align:center;
+        margin-top:50px;
+        padding-top:20px;
+        border-top:1px solid rgba(59,130,246,0.12);
+        color:#536783;
+        font-size:0.75rem;
     ">
-        Multi-Agent Ops Crew · Research · Data Analysis · Review · Revision
+        Multi-Agent Ops Crew · Research · Data · Review · Intelligence
     </div>
     """,
     unsafe_allow_html=True,
