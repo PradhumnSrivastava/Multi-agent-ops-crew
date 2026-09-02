@@ -7,8 +7,11 @@ from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 load_dotenv()
 
 
-def create_llm() -> ChatHuggingFace:
-    """Create the shared LLM used by all agents."""
+def create_llm(
+    max_new_tokens: int | None = None,
+    temperature: float | None = None,
+) -> ChatHuggingFace:
+    """Create the shared Hugging Face LLM used by all agents."""
 
     hf_token = os.getenv("HF_TOKEN")
 
@@ -25,13 +28,15 @@ def create_llm() -> ChatHuggingFace:
         "featherless-ai",
     )
 
-    max_new_tokens = int(
-        os.getenv("HF_MAX_NEW_TOKENS", "500")
-    )
+    if max_new_tokens is None:
+        max_new_tokens = int(
+            os.getenv("HF_MAX_NEW_TOKENS", "500")
+        )
 
-    temperature = float(
-        os.getenv("HF_TEMPERATURE", "0.1")
-    )
+    if temperature is None:
+        temperature = float(
+            os.getenv("HF_TEMPERATURE", "0.1")
+        )
 
     endpoint = HuggingFaceEndpoint(
         repo_id=model,

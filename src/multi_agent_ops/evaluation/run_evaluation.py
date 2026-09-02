@@ -84,6 +84,7 @@ def evaluate_report_quality(run, example) -> dict:
         "Business Impact",
         "Recommended Actions",
         "Further Investigation",
+        "Analysis Limitations",
     ]
 
     if not report:
@@ -142,7 +143,7 @@ def evaluate_numerical_consistency(run, example) -> dict:
             "comment": "Final report is missing.",
         }
 
-    if not metrics:
+    if not isinstance(metrics, dict) or not metrics:
         return {
             "key": "numerical_consistency",
             "score": 0.0,
@@ -256,6 +257,7 @@ def evaluate_evidence_grounding(run, example) -> dict:
     )
 
     if review_has_warnings:
+
         warning_acknowledged = any(
             term in report_lower
             for term in warning_terms
@@ -271,6 +273,7 @@ def evaluate_evidence_grounding(run, example) -> dict:
                 "The report contains evidence/inference structure "
                 "and acknowledges review-related limitations or warnings."
             )
+
         else:
             score = max(
                 0.0,
@@ -281,6 +284,7 @@ def evaluate_evidence_grounding(run, example) -> dict:
                 "The review contains warnings or unsupported-claim "
                 "concerns that are not clearly acknowledged in the report."
             )
+
     else:
         score = structure_score
 
@@ -340,3 +344,4 @@ def run_evaluation_dataset():
 
 if __name__ == "__main__":
     run_evaluation_dataset()
+

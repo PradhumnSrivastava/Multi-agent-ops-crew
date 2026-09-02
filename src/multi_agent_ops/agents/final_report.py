@@ -2,11 +2,14 @@ from multi_agent_ops.llm import create_llm
 from multi_agent_ops.state import OpsState
 
 
-llm = create_llm(max_new_tokens=500)
+llm = create_llm(
+    max_new_tokens=900,
+    temperature=0.0,
+)
 
 
 def final_report_agent(state: OpsState) -> dict:
-    """Generate a review-aware executive report."""
+    """Generate the final executive report."""
 
     problem = state["problem"]
     research_findings = state["research_findings"]
@@ -15,92 +18,123 @@ def final_report_agent(state: OpsState) -> dict:
     review = state["review"]
 
     prompt = f"""
-You are the final reporting analyst in a multi-agent business
-operations system.
+You are the final executive reporting analyst.
 
-Your responsibility is to produce the final executive report
-after research, data analysis, business analysis, and quality review.
+Create a concise, evidence-based business report using ONLY the
+information supplied below.
 
-Business Problem:
-
+BUSINESS PROBLEM
 {problem}
 
-Research Findings:
-
+RESEARCH FINDINGS
 {research_findings}
 
-Data Findings:
-
+DATA FINDINGS
 {data_findings}
 
-Business Analysis:
-
+BUSINESS ANALYSIS
 {business_analysis}
 
-Quality Review:
-
+QUALITY REVIEW
 {review}
 
-IMPORTANT:
+CRITICAL RULES
 
-The quality review is the final validation layer before reporting.
+1. The Data Findings are authoritative for numerical values.
 
-You MUST carefully apply every relevant issue identified by the
-reviewer.
+2. Preserve important numerical metrics from Data Findings.
 
-If the reviewer identifies an unsupported claim, do not present
-that claim as an established fact.
+3. Do not invent facts, statistics, sources, causes, or impacts.
 
-If the reviewer identifies a numerical inconsistency, use the
-original Data Findings as the authoritative source and verify
-the calculation before including it.
+4. Do not introduce external information.
 
-If the reviewer identifies a causal claim that is not supported
-by the available data, describe it as a possible explanation,
-hypothesis, or association rather than a proven cause.
+5. Do not present a hypothesis as a proven cause.
 
-Do not hide important warnings identified by the reviewer.
+6. Do not convert correlation into causation.
 
-Separate the final analysis into:
+7. If evidence is insufficient, explicitly state:
+   "The available evidence is insufficient to establish this as a
+   confirmed cause."
 
-- Evidence: directly supported by the provided data or research.
-- Inference: a reasonable interpretation of the available evidence.
-- Hypothesis: a possible explanation that requires further validation.
+8. Apply valid corrections identified by the Quality Review.
 
-Do not introduce information that is not present in the provided
-inputs.
+9. Include important limitations identified by the reviewer.
 
-Create a concise, evidence-based executive report.
+10. Complete ALL eleven sections. Never stop before section 11.
 
-Structure:
+11. Keep every section concise.
+
+REPORT STRUCTURE
 
 1. Executive Summary
+
 2. Problem Statement
+
 3. Key Findings
+
 4. Data Evidence
+
 5. Business Interpretation
+
 6. Evidence-Based Findings
+
 7. Hypotheses / Potential Root Causes
+
 8. Business Impact
+
 9. Recommended Actions
+
 10. Further Investigation
+
 11. Analysis Limitations
 
-Rules:
+SECTION RULES
 
-- Use only the information provided above.
-- Do not invent facts.
-- Do not invent statistics.
-- Do not invent sources.
-- Do not introduce external evidence.
-- Preserve accurate numerical findings from Data Findings.
-- Verify numerical claims before reporting them.
-- Do not convert correlation into causation.
-- Clearly distinguish evidence, inference, and hypothesis.
-- Apply the reviewer's corrections.
-- Mention important limitations identified by the reviewer.
-- Keep the report concise and professional.
-- Write for a business decision-maker.
+Executive Summary:
+Summarize the problem, strongest evidence, and overall conclusion.
+
+Problem Statement:
+Clearly define what changed.
+
+Key Findings:
+List the most important findings.
+
+Data Evidence:
+Include the important numerical metrics from Data Findings.
+
+Business Interpretation:
+Explain what the evidence means without claiming unsupported causality.
+
+Evidence-Based Findings:
+Include only findings supported by the supplied evidence.
+
+Hypotheses / Potential Root Causes:
+List possible causes and clearly label them as hypotheses when they
+are not directly proven.
+
+Business Impact:
+Describe only impacts reasonably supported by the available evidence.
+Do not invent financial or customer metrics.
+
+Recommended Actions:
+Give practical actions that follow from the evidence and hypotheses.
+
+Further Investigation:
+State what additional data would be required to validate hypotheses.
+
+Analysis Limitations:
+Explicitly state evidence gaps and causal limitations.
+
+FINAL VALIDATION BEFORE RESPONDING
+
+Check that:
+- all 11 headings are present;
+- numerical values agree with Data Findings;
+- unsupported claims are labelled as hypotheses;
+- important review warnings are acknowledged;
+- limitations are explicitly stated.
+
+Return ONLY the final executive report.
 """
 
     response = llm.invoke(prompt)

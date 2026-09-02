@@ -3,7 +3,7 @@ from multi_agent_ops.state import OpsState, ResearchSource
 from multi_agent_ops.tools.research_tools import web_search
 
 
-llm = create_llm(max_new_tokens=300)
+llm = create_llm(max_new_tokens=300,temperature=0.1)
 
 
 def research_agent(state: OpsState) -> dict:
