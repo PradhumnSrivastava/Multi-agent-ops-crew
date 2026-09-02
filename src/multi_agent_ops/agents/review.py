@@ -1,16 +1,18 @@
 from langchain_huggingface import ChatHuggingFace
+
 from multi_agent_ops.llm import create_llm
-from multi_agent_ops.agents.research import create_llm
 from multi_agent_ops.state import OpsState
 
 
 def create_review_llm() -> ChatHuggingFace:
-    """Create the Hugging Face model used by the review agent."""
+    """Create the LLM used by the review agent."""
+    return create_llm(
+        max_new_tokens=700,
+        temperature=0.0,
+    )
 
-    return create_llm()
 
-
-llm = create_llm()
+llm = create_review_llm()
 
 
 def review_agent(state: OpsState) -> dict:
@@ -22,121 +24,94 @@ def review_agent(state: OpsState) -> dict:
     business_analysis = state["business_analysis"]
 
     prompt = f"""
-You are a senior quality reviewer in a multi-agent
-business operations system.
+You are the senior quality reviewer of a business intelligence
+multi-agent system.
 
-Your responsibility is to independently verify the work
-produced by the research, data analysis, and business
-analysis agents.
+Your job is to critically review the analysis before final reporting.
 
-Business Problem:
+BUSINESS PROBLEM
 {problem}
 
-Research Findings:
+RESEARCH FINDINGS
 {research_findings}
 
-Data Findings:
+DATA FINDINGS
 {data_findings}
 
-Business Analysis:
+BUSINESS ANALYSIS
 {business_analysis}
 
-
-PERFORM THESE CHECKS:
+Review the analysis for:
 
 1. FACTUAL CONSISTENCY
+Check whether claims agree with the supplied research and data.
 
-Check whether statements in the business analysis are
-consistent with the research findings and available data.
+2. NUMERICAL CONSISTENCY
+Check important calculations using:
 
-
-2. NUMERICAL VALIDATION
-
-Independently calculate important percentage changes
-from the raw data.
-
-For example:
-
-Percentage change =
+percentage change =
 ((new value - old value) / old value) * 100
 
-Compare your calculations with every percentage reported
-by the previous agents.
+Identify any incorrect numerical values.
 
-If a reported number is incorrect, explicitly identify:
+3. EVIDENCE GROUNDING
+Determine which claims are directly supported by the supplied
+data or research.
 
-- reported value
-- correct value
-- source values used for calculation
-
-
-3. DATA-SUPPORTED CONCLUSIONS
-
-Check whether the conclusions are actually supported
-by the available data.
-
-Do not treat correlation as proof of causation.
-
-
-4. RESEARCH EVIDENCE
-
-Check whether research findings actually support the
-claims made in the business analysis.
-
-Do not assume that a research article proves that the
-same factor caused the problem in this specific business.
-
+4. CAUSALITY
+Do not treat correlation or association as proof of causation.
 
 5. UNSUPPORTED CLAIMS
-
-Identify statements that are hypotheses rather than
-established facts.
-
+Identify claims presented as facts when they are only hypotheses.
 
 6. MISSING INFORMATION
+Identify evidence required to establish stronger conclusions.
 
-Identify information that would be required to establish
-stronger causal conclusions.
-
-
-7. OVERALL QUALITY
-
-Determine whether the analysis is:
-
-PASS
-PASS_WITH_WARNINGS
-FAIL
-
+7. REPORT COMPLETENESS
+Check whether the analysis covers:
+- Business Interpretation
+- Evidence-Based Findings
+- Hypotheses
+- Business Impact
+- Recommended Actions
+- Further Investigation
+- Limitations
 
 IMPORTANT RULES:
 
+- Use only the supplied information.
 - Do not invent facts.
 - Do not invent statistics.
 - Do not introduce external evidence.
-- Use only the information provided in the state.
-- Independently verify numerical calculations.
-- Be critical.
-- Clearly distinguish evidence, inference, and hypothesis.
-- If you find a numerical error, explicitly flag it.
+- Be critical but concise.
+- Separate evidence, inference, and hypothesis.
+- Explicitly identify unsupported claims.
+- Explicitly identify numerical errors.
+- If there are no numerical errors, say so.
 
-
-Return the review using exactly these sections:
+Return exactly these sections:
 
 OVERALL ASSESSMENT:
+[brief assessment]
 
 STRENGTHS:
+- ...
 - ...
 
 ISSUES IDENTIFIED:
 - ...
+- ...
 
 UNSUPPORTED CLAIMS:
+- ...
 - ...
 
 MISSING INFORMATION:
 - ...
+- ...
 
 RECOMMENDED CORRECTIONS:
+- ...
 - ...
 
 FINAL REVIEW STATUS:
@@ -145,10 +120,6 @@ or
 PASS_WITH_WARNINGS
 or
 FAIL
-
-Do not use JSON.
-Do not use code blocks.
-Do not add additional sections.
 """
 
     response = llm.invoke(prompt)
