@@ -1,36 +1,53 @@
-from typing import Any
+from io import BytesIO
 
 import pandas as pd
 
 
-def load_support_data() -> pd.DataFrame:
-    """Load sample customer support data for analysis."""
+def load_support_data(file_bytes: bytes) -> pd.DataFrame:
+    """Load company support data from an uploaded CSV file."""
 
-    data: list[dict[str, Any]] = [
-        {
-            "month": "2026-01",
-            "tickets": 4200,
-            "avg_resolution_hours": 18.2,
-            "staff_count": 52,
-        },
-        {
-            "month": "2026-02",
-            "tickets": 4500,
-            "avg_resolution_hours": 19.1,
-            "staff_count": 52,
-        },
-        {
-            "month": "2026-03",
-            "tickets": 5100,
-            "avg_resolution_hours": 22.4,
-            "staff_count": 50,
-        },
-        {
-            "month": "2026-04",
-            "tickets": 5700,
-            "avg_resolution_hours": 26.8,
-            "staff_count": 48,
-        },
+    if not file_bytes:
+        raise ValueError("Uploaded CSV file is empty.")
+
+    df = pd.read_csv(BytesIO(file_bytes))
+
+    if df.empty:
+        raise ValueError("Uploaded CSV file does not contain any data.")
+
+    return df
+
+
+def validate_support_data(df: pd.DataFrame) -> None:
+    """Validate the minimum columns required for support analysis."""
+
+    required_columns = {
+        "month",
+        "tickets",
+        "avg_resolution_hours",
+        "staff_count",
+    }
+
+    missing_columns = required_columns - set(df.columns)
+
+    if missing_columns:
+        missing = ", ".join(sorted(missing_columns))
+        raise ValueError(
+            f"CSV is missing required columns: {missing}"
+        )
+
+    if len(df) < 2:
+        raise ValueError(
+            "CSV must contain at least two rows for trend analysis."
+        )
+
+    numeric_columns = [
+        "tickets",
+        "avg_resolution_hours",
+        "staff_count",
     ]
 
-    return pd.DataFrame(data)
+    for column in numeric_columns:
+        if not pd.api.types.is_numeric_dtype(df[column]):
+            raise ValueError(
+                f"Column '{column}' must contain numeric values."
+            )

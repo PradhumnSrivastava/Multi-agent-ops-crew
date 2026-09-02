@@ -3,7 +3,6 @@ from typing import Any
 import pandas as pd
 
 from multi_agent_ops.state import OpsState
-from multi_agent_ops.tools.data_tools import load_support_data
 
 
 def calculate_metrics(df: pd.DataFrame) -> dict[str, Any]:
@@ -18,8 +17,10 @@ def calculate_metrics(df: pd.DataFrame) -> dict[str, Any]:
     ) * 100
 
     resolution_time_change_pct = (
-        (last_row["avg_resolution_hours"]
-         - first_row["avg_resolution_hours"])
+        (
+            last_row["avg_resolution_hours"]
+            - first_row["avg_resolution_hours"]
+        )
         / first_row["avg_resolution_hours"]
     ) * 100
 
@@ -60,9 +61,14 @@ def calculate_metrics(df: pd.DataFrame) -> dict[str, Any]:
 
 
 def data_analysis_agent(state: OpsState) -> dict:
-    """Analyze customer support data and identify measurable trends."""
+    """Analyze uploaded company data and identify measurable trends."""
 
-    df = load_support_data()
+    company_data = state.get("company_data", [])
+
+    if not company_data:
+        raise ValueError("No company data was provided.")
+
+    df = pd.DataFrame(company_data)
 
     metrics = calculate_metrics(df)
 

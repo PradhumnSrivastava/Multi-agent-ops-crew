@@ -1,3 +1,7 @@
+from pathlib import Path
+
+import pandas as pd
+
 from multi_agent_ops.graph import build_graph
 from multi_agent_ops.state import OpsState
 
@@ -10,10 +14,26 @@ def main() -> None:
     if not problem:
         raise ValueError("Business problem cannot be empty.")
 
-    graph = build_graph()
+    csv_path = input("Enter CSV file path: ").strip()
+
+    if not csv_path:
+        raise ValueError("CSV file path cannot be empty.")
+
+    path = Path(csv_path)
+
+    if not path.exists():
+        raise FileNotFoundError(
+            f"CSV file not found: {csv_path}"
+        )
+
+    df = pd.read_csv(path)
+
+    if df.empty:
+        raise ValueError("CSV file does not contain any data.")
 
     initial_state: OpsState = {
         "problem": problem,
+        "company_data": df.to_dict(orient="records"),
         "plan": {},
         "research_findings": {},
         "data_findings": {},
@@ -31,6 +51,8 @@ def main() -> None:
     print("=" * 70)
     print()
 
+    graph = build_graph()
+
     try:
         result = graph.invoke(initial_state)
 
@@ -47,7 +69,10 @@ def main() -> None:
 
     print("=" * 70)
     print(f"Status: {result.get('status', 'UNKNOWN')}")
-    print(f"Revision attempts: {result.get('revision_count', 0)}")
+    print(
+        f"Revision attempts: "
+        f"{result.get('revision_count', 0)}"
+    )
     print()
     print("FINAL EXECUTIVE REPORT")
     print("-" * 70)

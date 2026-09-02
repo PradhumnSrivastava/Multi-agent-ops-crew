@@ -116,12 +116,11 @@ def numerical_consistency_evaluator(
     outputs: dict[str, Any],
     reference_outputs: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """
-    Check whether important numerical metrics from Data Findings
-    are preserved correctly in the final report.
-    """
+    """Check whether Data Findings metrics are preserved."""
+
     data_findings = outputs.get("data_findings", {})
     final_report = outputs.get("final_report", {})
+
     report = final_report.get("report", "")
 
     if not isinstance(report, str) or not report.strip():
@@ -137,47 +136,34 @@ def numerical_consistency_evaluator(
         return {
             "key": "numerical_consistency",
             "score": 1.0,
-            "comment": "No numerical metrics were available for comparison.",
+            "comment": "No numerical metrics were available.",
         }
 
-    report_text = report.lower()
-
-    expected_metrics = {
-        key: value
-        for key, value in metrics.items()
+    available_metrics = [
+        str(value)
+        for value in metrics.values()
         if isinstance(value, (int, float))
-    }
+    ]
 
-    if not expected_metrics:
-        return {
-            "key": "numerical_consistency",
-            "score": 1.0,
-            "comment": "No numerical metrics were available for comparison.",
-        }
+    preserved_metrics = [
+        metric
+        for metric in available_metrics
+        if metric in report
+    ]
 
-    preserved_metrics = 0
-
-    for value in expected_metrics.values():
-        value_text = str(value)
-
-        if value_text in report_text:
-            preserved_metrics += 1
-            continue
-
-        if isinstance(value, float):
-            formatted_value = f"{value:.2f}"
-            if formatted_value in report_text:
-                preserved_metrics += 1
-
-    score = preserved_metrics / len(expected_metrics)
+    score = (
+        len(preserved_metrics)
+        / len(available_metrics)
+    )
 
     return {
         "key": "numerical_consistency",
         "score": score,
         "comment": (
-            f"{preserved_metrics}/{len(expected_metrics)} "
-            "numerical metrics from Data Findings were preserved "
-            "in the final report."
+            f"{len(preserved_metrics)}/"
+            f"{len(available_metrics)} "
+            "numerical metrics from Data Findings "
+            "were preserved in the final report."
         ),
     }
 

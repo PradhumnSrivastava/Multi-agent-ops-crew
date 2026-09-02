@@ -12,6 +12,7 @@ dependencies = [
     "langsmith>=0.11.2",
     "pandas>=3.0.5",
     "pydantic>=2.13.5",
+    "streamlit>=1.45.0",
     "python-dotenv>=1.2.3",
 ]
 
