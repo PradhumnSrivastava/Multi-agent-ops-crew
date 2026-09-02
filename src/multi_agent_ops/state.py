@@ -1,5 +1,15 @@
 from typing import Any, TypedDict
 
+from pydantic import BaseModel
+
+
+class ResearchSource(BaseModel):
+    """Source returned by the research agent."""
+
+    title: str
+    url: str
+    snippet: str
+
 
 class OpsState(TypedDict, total=False):
     """Shared state passed between all agents in the workflow."""

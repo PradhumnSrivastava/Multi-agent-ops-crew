@@ -31,6 +31,7 @@ def validate_support_data(df: pd.DataFrame) -> None:
 
     if missing_columns:
         missing = ", ".join(sorted(missing_columns))
+
         raise ValueError(
             f"CSV is missing required columns: {missing}"
         )
