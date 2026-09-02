@@ -1,4 +1,5 @@
 import re
+import textwrap
 
 import pandas as pd
 import plotly.express as px
@@ -17,10 +18,37 @@ st.set_page_config(
 
 
 # ============================================================
+# HTML RENDER HELPER
+# ============================================================
+#
+# Streamlit's st.markdown() runs its input through a Markdown
+# parser before handing it to the browser. Markdown treats any
+# line that is indented by 4 or more spaces as a fenced code
+# block and prints it verbatim instead of parsing it as HTML.
+#
+# Because the HTML/CSS strings below live inside indented
+# Python code (functions, if-blocks, etc.), their triple-quoted
+# literals inherit that leading whitespace — so even with
+# unsafe_allow_html=True, Markdown was rendering them as literal
+# text/code instead of HTML.
+#
+# textwrap.dedent() strips the common leading whitespace from
+# every line before the string reaches st.markdown(), so the
+# HTML starts at column 0 and is parsed correctly.
+# ============================================================
+
+def render_html(html: str) -> None:
+    st.markdown(
+        textwrap.dedent(html).strip("\n"),
+        unsafe_allow_html=True,
+    )
+
+
+# ============================================================
 # CUSTOM CSS
 # ============================================================
 
-st.markdown(
+render_html(
     """
     <style>
 
@@ -359,8 +387,7 @@ st.markdown(
     }
 
     </style>
-    """,
-    unsafe_allow_html=True,
+    """
 )
 
 
@@ -474,7 +501,7 @@ def main() -> None:
     # HERO
     # ========================================================
 
-    st.markdown(
+    render_html(
         """
         <div class="hero">
             <div class="hero-brand">
@@ -491,32 +518,26 @@ def main() -> None:
                 research, data analysis, review, and revision agents.
             </div>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
     # ========================================================
     # BUSINESS PROBLEM
     # ========================================================
 
-    st.markdown(
-        '<div class="section-label">01 — Investigation</div>',
-        unsafe_allow_html=True,
+    render_html('<div class="section-label">01 — Investigation</div>')
+
+    render_html(
+        '<div class="section-title">Define Your Business Problem</div>'
     )
 
-    st.markdown(
-        '<div class="section-title">'
-        "Define Your Business Problem"
-        "</div>",
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="section-description">'
-        "Describe the operational problem, performance issue, "
-        "or business question you want the agent crew to investigate."
-        "</div>",
-        unsafe_allow_html=True,
+    render_html(
+        """
+        <div class="section-description">
+            Describe the operational problem, performance issue,
+            or business question you want the agent crew to investigate.
+        </div>
+        """
     )
 
     problem = st.text_area(
@@ -533,25 +554,18 @@ def main() -> None:
     # CSV UPLOAD
     # ========================================================
 
-    st.markdown(
-        '<div class="section-label">02 — Data</div>',
-        unsafe_allow_html=True,
-    )
+    render_html('<div class="section-label">02 — Data</div>')
 
-    st.markdown(
-        '<div class="section-title">'
-        "Upload Company Data"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    render_html('<div class="section-title">Upload Company Data</div>')
 
-    st.markdown(
-        '<div class="section-description">'
-        "Upload a CSV containing the operational data required "
-        "for the analysis. The system will validate and pass "
-        "the data into the multi-agent workflow."
-        "</div>",
-        unsafe_allow_html=True,
+    render_html(
+        """
+        <div class="section-description">
+            Upload a CSV containing the operational data required
+            for the analysis. The system will validate and pass
+            the data into the multi-agent workflow.
+        </div>
+        """
     )
 
     uploaded_file = st.file_uploader(
@@ -592,10 +606,7 @@ def main() -> None:
     # ANALYZE BUTTON
     # ========================================================
 
-    st.markdown(
-        '<div class="section-label">03 — Execute</div>',
-        unsafe_allow_html=True,
-    )
+    render_html('<div class="section-label">03 — Execute</div>')
 
     analyze = st.button(
         "Analyze Business Problem",
@@ -604,14 +615,13 @@ def main() -> None:
     )
 
     if not analyze:
-        st.markdown(
+        render_html(
             """
             <div class="footer">
                 Multi-Agent Ops Crew · Research · Analytics ·
                 Quality Control · Executive Intelligence
             </div>
-            """,
-            unsafe_allow_html=True,
+            """
         )
         return
 
@@ -677,17 +687,9 @@ def main() -> None:
     # WORKFLOW STATUS
     # ========================================================
 
-    st.markdown(
-        '<div class="section-label">04 — Workflow</div>',
-        unsafe_allow_html=True,
-    )
+    render_html('<div class="section-label">04 — Workflow</div>')
 
-    st.markdown(
-        '<div class="section-title">'
-        "Workflow Status"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    render_html('<div class="section-title">Workflow Status</div>')
 
     status_col, revision_col = st.columns(2)
 
@@ -697,7 +699,7 @@ def main() -> None:
             "UNKNOWN",
         )
 
-        st.markdown(
+        render_html(
             f"""
             <div class="info-card">
                 <div class="card-label">
@@ -707,8 +709,7 @@ def main() -> None:
                     {status_value}
                 </div>
             </div>
-            """,
-            unsafe_allow_html=True,
+            """
         )
 
     with revision_col:
@@ -717,7 +718,7 @@ def main() -> None:
             0,
         )
 
-        st.markdown(
+        render_html(
             f"""
             <div class="info-card">
                 <div class="card-label">
@@ -727,8 +728,7 @@ def main() -> None:
                     {revision_count}
                 </div>
             </div>
-            """,
-            unsafe_allow_html=True,
+            """
         )
 
     # ========================================================
@@ -747,17 +747,9 @@ def main() -> None:
 
     if metrics:
 
-        st.markdown(
-            '<div class="section-label">05 — Analytics</div>',
-            unsafe_allow_html=True,
-        )
+        render_html('<div class="section-label">05 — Analytics</div>')
 
-        st.markdown(
-            '<div class="section-title">'
-            "Key Metrics"
-            "</div>",
-            unsafe_allow_html=True,
-        )
+        render_html('<div class="section-title">Key Metrics</div>')
 
         metric_items = list(
             metrics.items()
@@ -787,7 +779,7 @@ def main() -> None:
 
                 with column:
 
-                    st.markdown(
+                    render_html(
                         f"""
                         <div class="metric-card">
                             <div class="metric-label">
@@ -798,8 +790,7 @@ def main() -> None:
                                 {value}
                             </div>
                         </div>
-                        """,
-                        unsafe_allow_html=True,
+                        """
                     )
 
     # ========================================================
@@ -816,18 +807,12 @@ def main() -> None:
 
         if numeric_columns:
 
-            st.markdown(
-                '<div class="section-label">'
-                "06 — Data Visualization"
-                "</div>",
-                unsafe_allow_html=True,
+            render_html(
+                '<div class="section-label">06 — Data Visualization</div>'
             )
 
-            st.markdown(
-                '<div class="section-title">'
-                "Operational Trends"
-                "</div>",
-                unsafe_allow_html=True,
+            render_html(
+                '<div class="section-title">Operational Trends</div>'
             )
 
             selected_metric = st.selectbox(
@@ -882,26 +867,16 @@ def main() -> None:
 
     if review:
 
-        st.markdown(
-            '<div class="section-label">'
-            "07 — Quality Control"
-            "</div>",
-            unsafe_allow_html=True,
-        )
+        render_html('<div class="section-label">07 — Quality Control</div>')
 
-        st.markdown(
-            '<div class="section-title">'
-            "Quality Review"
-            "</div>",
-            unsafe_allow_html=True,
-        )
+        render_html('<div class="section-title">Quality Review</div>')
 
         review_status = review.get(
             "review_status",
             "UNKNOWN",
         )
 
-        st.markdown(
+        render_html(
             f"""
             <div style="margin-bottom: 1rem;">
                 <strong style="color:#cbd5e1;">
@@ -910,8 +885,7 @@ def main() -> None:
                 &nbsp;
                 {review_badge(review_status)}
             </div>
-            """,
-            unsafe_allow_html=True,
+            """
         )
 
         with st.expander(
@@ -924,9 +898,9 @@ def main() -> None:
                 "No review available.",
             )
 
-            st.markdown(
-                review_analysis
-            )
+            # This is user/agent-generated Markdown, not our own UI
+            # HTML, so it is rendered WITHOUT unsafe_allow_html.
+            st.markdown(review_analysis)
 
     # ========================================================
     # FINAL EXECUTIVE REPORT
@@ -942,18 +916,12 @@ def main() -> None:
         "",
     )
 
-    st.markdown(
-        '<div class="section-label">'
-        "08 — Executive Intelligence"
-        "</div>",
-        unsafe_allow_html=True,
+    render_html(
+        '<div class="section-label">08 — Executive Intelligence</div>'
     )
 
-    st.markdown(
-        '<div class="section-title">'
-        "Final Executive Report"
-        "</div>",
-        unsafe_allow_html=True,
+    render_html(
+        '<div class="section-title">Final Executive Report</div>'
     )
 
     if report:
@@ -962,19 +930,15 @@ def main() -> None:
             report
         )
 
-        st.markdown(
-            '<div class="report-container">',
-            unsafe_allow_html=True,
-        )
+        # Open the styled wrapper (our own trusted HTML).
+        render_html('<div class="report-container">')
 
-        st.markdown(
-            clean_report
-        )
+        # The report body is agent-generated Markdown — rendered
+        # safely as plain Markdown, no unsafe_allow_html.
+        st.markdown(clean_report)
 
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True,
-        )
+        # Close the styled wrapper.
+        render_html("</div>")
 
     else:
 
@@ -986,14 +950,13 @@ def main() -> None:
     # FOOTER
     # ========================================================
 
-    st.markdown(
+    render_html(
         """
         <div class="footer">
             Multi-Agent Ops Crew ·
             Evidence-Based Operational Intelligence
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
