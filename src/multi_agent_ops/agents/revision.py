@@ -1,20 +1,15 @@
-from langchain_huggingface import ChatHuggingFace
-
-from multi_agent_ops.agents.research import create_llm
+from multi_agent_ops.llm import create_llm
 from multi_agent_ops.state import OpsState
 
 
-def create_revision_llm() -> ChatHuggingFace:
-    """Create the Hugging Face model used by the revision agent."""
-
-    return create_llm()
-
-
-llm = create_revision_llm()
+llm = create_llm(
+    max_new_tokens=800,
+    temperature=0.0,
+)
 
 
 def revision_agent(state: OpsState) -> dict:
-    """Revise the business analysis based on review feedback."""
+    """Revise business analysis using the quality review."""
 
     problem = state["problem"]
     research_findings = state["research_findings"]
@@ -22,66 +17,142 @@ def revision_agent(state: OpsState) -> dict:
     business_analysis = state["business_analysis"]
     review = state["review"]
 
-    prompt = f"""
-You are a senior business analyst responsible for revising
-an analysis after a critical quality review.
+    revision_count = state.get("revision_count", 0) + 1
 
-Business Problem:
+    prompt = f"""
+You are a senior business analyst responsible for correcting
+an analysis after an independent quality review.
+
+BUSINESS PROBLEM
+
 {problem}
 
-Research Findings:
+
+RESEARCH FINDINGS
+
 {research_findings}
 
-Data Findings:
+
+DATA FINDINGS
+
 {data_findings}
 
-Previous Business Analysis:
+
+CURRENT BUSINESS ANALYSIS
+
 {business_analysis}
 
-Quality Review:
+
+QUALITY REVIEW
+
 {review}
 
-Your task is to produce a corrected business analysis.
 
-Apply every valid correction identified by the reviewer.
+YOUR TASK
 
-Important rules:
+Revise the business analysis according to the quality review.
 
-- Do not invent facts.
-- Do not invent statistics.
-- Do not introduce external evidence.
-- Use the Data Findings as the authoritative source for numbers.
-- Do not change numerical values unless they are mathematically incorrect.
-- Do not convert correlation into causation.
-- Clearly distinguish evidence, inference, and hypothesis.
-- Remove unsupported claims.
-- Do not claim that research evidence proves a business cause.
-- If information is missing, explicitly identify it as missing.
-- Preserve useful parts of the previous analysis.
-- Improve the analysis rather than simply rewriting it.
+The revised analysis must be more accurate and better grounded
+than the original analysis.
 
-Structure the revised analysis as:
 
-1. Business Interpretation
-2. Evidence-Based Findings
-3. Most Likely Contributing Factors
-4. Hypotheses
-5. Business Impact
-6. Recommended Actions
-7. Further Investigation
-8. Limitations
+STRICT RULES
 
-Return only the revised business analysis.
+1. Use only the information provided above.
+
+2. Do not introduce external information.
+
+3. Do not invent facts.
+
+4. Do not invent statistics.
+
+5. Do not invent sources.
+
+6. Use Data Findings as the authoritative source for numerical
+   values.
+
+7. Recalculate important percentage changes when necessary.
+
+8. If a numerical value cannot be verified from the provided data,
+   remove it or explicitly identify it as unavailable.
+
+9. Never present correlation as causation.
+
+10. A possible cause must be described as a hypothesis unless
+    the provided evidence directly establishes it.
+
+11. Do not treat general research findings as proof of what caused
+    the specific business problem.
+
+12. Remove unsupported claims identified by the reviewer.
+
+13. Preserve valid findings from the original analysis.
+
+14. Clearly distinguish:
+    - Evidence
+    - Inference
+    - Hypothesis
+
+15. Address every important issue identified in the review.
+
+16. Do not hide evidence gaps.
+
+17. Do not mention this revision prompt or the internal workflow.
+
+
+REVISED ANALYSIS STRUCTURE
+
+1. Executive Summary
+
+2. Problem Statement
+
+3. Key Findings
+
+4. Data Evidence
+
+5. Business Interpretation
+
+6. Evidence-Based Findings
+
+7. Hypotheses / Potential Root Causes
+
+8. Business Impact
+
+9. Recommended Actions
+
+10. Further Investigation
+
+11. Analysis Limitations
+
+
+IMPORTANT
+
+The revised analysis must not claim that a factor caused the
+business problem unless the provided evidence establishes
+causation.
+
+For example, prefer:
+
+"The increase in workload coincided with the increase in
+resolution time and may be a contributing factor."
+
+instead of:
+
+"The increase in workload caused resolution time to increase."
+
+Return only the complete revised business analysis.
 """
 
     response = llm.invoke(prompt)
 
     return {
         "business_analysis": {
-            "analysis": response.content,
+            "analysis": response.content.strip(),
         },
         "revision": {
-            "reason": "Business analysis revised based on quality review.",
+            "analysis": response.content.strip(),
+            "revision_number": revision_count,
         },
+        "revision_count": revision_count,
         "status": "REVISION_COMPLETED",
     }
